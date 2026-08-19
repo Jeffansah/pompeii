@@ -2,136 +2,102 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowUpRight01Icon,
-  Calendar03Icon,
-  CheckmarkCircle02Icon,
-  ChevronDownIcon,
-  Clock01Icon,
-  CommandIcon,
-  Edit02Icon,
-  FilterIcon,
-  Home03Icon,
-  Menu01Icon,
-  PlusSignIcon,
-  Search01Icon,
-  Settings02Icon,
-  SparklesIcon,
-  UserGroupIcon,
-  Wallet03Icon,
-  Cancel01Icon,
+  ArrowUpRight01Icon, Calendar03Icon, CheckmarkCircle02Icon, ChevronDownIcon,
+  Clock01Icon, CommandIcon, Edit02Icon, FilterIcon, Home03Icon, Menu01Icon,
+  PlusSignIcon, Search01Icon, Settings02Icon, SparklesIcon, UserGroupIcon,
+  Wallet03Icon, Cancel01Icon, ArrowLeft01Icon, ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 
-export const Route = createFileRoute("/$slug/")({
-  component: WeddingWorkspaceHome,
-});
+export const Route = createFileRoute("/$slug/")({ component: WeddingWorkspace });
 
-type Action = { id: number; title: string; detail: string; label: string; tone: string };
+type Domain = "Overview" | "Plan" | "Timeline" | "Guests" | "Budget" | "Vendors" | "Design" | "Website" | "Wedding day";
+type Task = { id: number; title: string; area: string; due: string; owner: string; done: boolean };
 
-const navItems = [
-  { label: "Overview", icon: Home03Icon },
-  { label: "Plan", icon: CheckmarkCircle02Icon },
-  { label: "Guests", icon: UserGroupIcon },
-  { label: "Budget", icon: Wallet03Icon },
-  { label: "Vendors", icon: SparklesIcon },
+const nav: { label: Domain; icon: typeof Home03Icon; group?: string }[] = [
+  { label: "Overview", icon: Home03Icon }, { label: "Plan", icon: CheckmarkCircle02Icon, group: "Planning" },
+  { label: "Timeline", icon: Clock01Icon }, { label: "Guests", icon: UserGroupIcon },
+  { label: "Budget", icon: Wallet03Icon }, { label: "Vendors", icon: SparklesIcon, group: "Details" },
+  { label: "Design", icon: Edit02Icon }, { label: "Website", icon: ArrowUpRight01Icon, group: "Share" },
+  { label: "Wedding day", icon: Calendar03Icon },
 ];
 
-const domains = [
-  { name: "Timeline", detail: "12 of 18 moments placed", progress: 68, tone: "olive", icon: Clock01Icon },
-  { name: "Guests", detail: "64 invited · 48 responded", progress: 75, tone: "sand", icon: UserGroupIcon },
-  { name: "Budget", detail: "$18,420 remaining", progress: 54, tone: "terra", icon: Wallet03Icon },
-  { name: "Vendors", detail: "7 booked · 3 to review", progress: 70, tone: "blue", icon: SparklesIcon },
+const initialTasks: Task[] = [
+  { id: 1, title: "Choose ceremony music", area: "Design", due: "Today", owner: "J", done: false },
+  { id: 2, title: "Review photographer shortlist", area: "Vendors", due: "Tomorrow", owner: "A", done: false },
+  { id: 3, title: "Send final meal preferences", area: "Guests", due: "Mar 18", owner: "J", done: false },
+  { id: 4, title: "Approve printed menus", area: "Design", due: "Mar 22", owner: "A", done: true },
+  { id: 5, title: "Confirm ceremony readings", area: "Plan", due: "Mar 26", owner: "J", done: false },
 ];
 
-const moments = [
-  { date: "MAR 18", title: "Venue walk-through", detail: "Villa Cimbrone · 10:30 AM", active: true },
-  { date: "APR 02", title: "Invitations go out", detail: "A quiet little milestone" },
-  { date: "MAY 11", title: "Menu tasting", detail: "With Osteria Francescana" },
-  { date: "SEP 14", title: "The day itself", detail: "Ravello, Italy" },
+const guests = [
+  ["Maya & Theo", "Family", "Accepted", "Vegetarian", "2"], ["Sofia Laurent", "Friends", "Pending", "No preference", "1"],
+  ["David Chen", "Friends", "Accepted", "No preference", "1"], ["The Parkers", "Family", "Declined", "—", "0"],
+  ["Elena Rossi", "Family", "Accepted", "Gluten free", "1"], ["Noah Williams", "Friends", "Pending", "No preference", "1"],
 ];
+const vendors = [
+  ["Villa Cimbrone", "Venue", "Booked", "€18,500", "Lucia Bianchi"], ["Studio Olivine", "Photography", "Shortlist", "€4,200", "Marta Green"],
+  ["Corte Formaggi", "Catering", "Booked", "€12,800", "Marco Bellini"], ["Fiori di Amalfi", "Florals", "To review", "€3,600", "Giulia Costa"],
+  ["Luce Events", "Lighting", "Contacted", "€2,100", "Pietro Serra"],
+];
+const moments = ["Guests arrive", "Welcome drinks", "Ceremony", "Aperitivo", "Dinner", "First dance", "Late night gelato"];
 
-function WeddingWorkspaceHome() {
-  const [activeNav, setActiveNav] = useState("Overview");
-  const [isCommandOpen, setCommandOpen] = useState(false);
+function Icon({ icon, size = 17 }: { icon: typeof Home03Icon; size?: number }) { return <HugeiconsIcon icon={icon} size={size} strokeWidth={1.5} />; }
+
+function WeddingWorkspace() {
+  const [active, setActive] = useState<Domain>("Overview");
+  const [tasks, setTasks] = useState(initialTasks);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [actions, setActions] = useState<Action[]>([
-    { id: 1, title: "Choose your ceremony music", detail: "A small decision that sets the tone", label: "Design", tone: "olive" },
-    { id: 2, title: "Review the photographer shortlist", detail: "3 proposals waiting for your thoughts", label: "Vendors", tone: "terra" },
-    { id: 3, title: "Add dietary notes for your guests", detail: "12 guests still need a little attention", label: "Guests", tone: "blue" },
-  ]);
+  const [toast, setToast] = useState("");
+  const [filter, setFilter] = useState("All");
 
-  const commandItems = useMemo(() => {
-    const items = ["Add a task", "Add a guest", "Save an inspiration", "Record a payment", "Invite someone"];
-    return items.filter((item) => item.toLowerCase().includes(query.toLowerCase()));
-  }, [query]);
+  const notify = (message: string) => { setToast(message); window.setTimeout(() => setToast(""), 2400); };
+  const toggleTask = (id: number) => { setTasks((items) => items.map((item) => item.id === id ? { ...item, done: !item.done } : item)); notify("Task updated locally"); };
+  const commands = useMemo(() => [...nav.map((item) => item.label), "Add a task", "Add a guest", "Record a payment", "Add a vendor", "Save inspiration"].filter((item) => item.toLowerCase().includes(query.toLowerCase())), [query]);
+  const openCommand = () => { setCommandOpen(true); setQuery(""); };
 
-  const dismissAction = (id: number) => setActions((items) => items.filter((item) => item.id !== id));
+  return <main className="workspace-app">
+    <aside className="workspace-rail">
+      <div className="rail-brand"><span className="brand-monogram">M</span><div><strong>Morrow</strong><small>Private wedding studio</small></div></div>
+      <button className="wedding-switcher"><span className="avatar-pair">J&A</span><span><b>June & Alex</b><small>Ravello · Sep 14, 2025</small></span><Icon icon={ChevronDownIcon} size={14} /></button>
+      <nav aria-label="Wedding workspace navigation" className="workspace-nav">
+        {nav.map((item) => <div key={item.label}>{item.group && <p className="nav-group">{item.group}</p>}<button className={`nav-item ${active === item.label ? "selected" : ""}`} onClick={() => setActive(item.label)}><Icon icon={item.icon} /><span>{item.label}</span>{item.label === "Guests" && <em>64</em>}</button></div>)}
+      </nav>
+      <div className="rail-footer"><button className="nav-item"><Icon icon={Settings02Icon} /><span>Workspace settings</span></button><div className="couple-row"><span className="avatar-pair">J&A</span><span>June & Alex</span><span className="status-line" /></div></div>
+    </aside>
 
-  return (
-    <main className="morrow-app">
-      <aside className="studio-rail">
-        <div className="brand-mark">M<span>•</span></div>
-        <div className="rail-label">WEDDING<br />STUDIO</div>
-        <nav className="rail-nav" aria-label="Workspace navigation">
-          {navItems.map((item) => (
-            <button key={item.label} className={`rail-link ${activeNav === item.label ? "is-active" : ""}`} onClick={() => setActiveNav(item.label)}>
-              <HugeiconsIcon icon={item.icon} size={18} strokeWidth={1.5} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-        <div className="rail-bottom">
-          <button className="rail-link"><HugeiconsIcon icon={Settings02Icon} size={18} strokeWidth={1.5} /><span>Settings</span></button>
-          <div className="profile-chip"><span className="profile-initials">J&amp;A</span><span className="online-dot" /></div>
-        </div>
-      </aside>
+    <section className="workspace-main">
+      <header className="workspace-topbar"><div className="mobile-title"><span className="brand-monogram">M</span><span>JUNE & ALEX</span></div><div className="breadcrumb"><span>JUNE & ALEX</span><Icon icon={ChevronDownIcon} size={13} /><span>/</span><b>{active}</b></div><div className="top-actions"><button className="search-button" onClick={openCommand}><Icon icon={Search01Icon} /><span>Search workspace</span><kbd>⌘ K</kbd></button><button className="quick-button" onClick={() => setQuickOpen(true)}><Icon icon={PlusSignIcon} /><span>Quick add</span></button><button className="menu-button" aria-label="Open menu"><Icon icon={Menu01Icon} /></button></div></header>
+      <div className="workspace-page">
+        {active === "Overview" && <Overview onNavigate={setActive} tasks={tasks} toggleTask={toggleTask} onQuick={() => setQuickOpen(true)} />}
+        {active === "Plan" && <Plan tasks={tasks} toggleTask={toggleTask} filter={filter} setFilter={setFilter} onAdd={() => setQuickOpen(true)} />}
+        {active === "Timeline" && <Timeline onAdd={() => setQuickOpen(true)} />}
+        {active === "Guests" && <Guests onAdd={() => setQuickOpen(true)} />}
+        {active === "Budget" && <Budget onAdd={() => setQuickOpen(true)} />}
+        {active === "Vendors" && <Vendors onAdd={() => setQuickOpen(true)} />}
+        {active === "Design" && <Design onAdd={() => setQuickOpen(true)} />}
+        {active === "Website" && <Website onNotify={notify} />}
+        {active === "Wedding day" && <WeddingDay onNotify={notify} />}
+      </div>
+    </section>
 
-      <section className="workspace-content">
-        <header className="topbar">
-          <div className="mobile-brand"><span className="brand-mark">M<span>•</span></span><span>JUNE &amp; ALEX</span></div>
-          <div className="crumb"><span>JUNE &amp; ALEX</span><HugeiconsIcon icon={ChevronDownIcon} size={14} /></div>
-          <div className="topbar-actions">
-            <button className="command-trigger" onClick={() => setCommandOpen(true)}><HugeiconsIcon icon={Search01Icon} size={16} /><span>Search anything</span><kbd>⌘ K</kbd></button>
-            <button className="icon-button" aria-label="Open menu"><HugeiconsIcon icon={Menu01Icon} size={19} /></button>
-          </div>
-        </header>
-
-        <div className="page-wrap">
-          <section className="intro-row">
-            <div>
-              <p className="eyebrow">SATURDAY, SEPTEMBER 14, 2025 · RAVELLO, ITALY</p>
-              <h1>Good morning, <em>June &amp; Alex.</em></h1>
-              <p className="intro-copy">A beautiful day is taking shape. Here&apos;s what feels most useful right now.</p>
-            </div>
-            <div className="countdown"><span className="countdown-number">218</span><span className="countdown-label">DAYS TO GO</span></div>
-          </section>
-
-          <section className="hero-panel">
-            <div className="hero-image"><img src="/morrow-estate.png" alt="Sunlit stone estate in Ravello" /><div className="image-caption">Villa Cimbrone <span>·</span> Ravello</div></div>
-            <div className="hero-copy">
-              <div className="hero-kicker"><span className="line" /> YOUR WEDDING, IN FOCUS</div>
-              <h2>The shape<br />of your <i>day.</i></h2>
-              <p>Unhurried, sunlit, and a little bit unexpected. Your choices are beginning to tell a story that feels unmistakably yours.</p>
-              <div className="palette"><span className="palette-label">YOUR PALETTE</span><span className="swatch swatch-1" /><span className="swatch swatch-2" /><span className="swatch swatch-3" /><span className="swatch swatch-4" /><button aria-label="Edit wedding identity"><HugeiconsIcon icon={Edit02Icon} size={14} /></button></div>
-            </div>
-          </section>
-
-          <section className="today-section">
-            <div className="section-heading"><div><p className="eyebrow">A LITTLE MOMENTUM</p><h2>Today</h2></div><button className="text-action" onClick={() => setCommandOpen(true)}>Quick add <HugeiconsIcon icon={PlusSignIcon} size={15} /></button></div>
-            <div className="action-list">
-              {actions.length === 0 ? <div className="empty-actions">You&apos;re all caught up for now.</div> : actions.map((action) => (
-                <article className="action-row" key={action.id}><span className={`action-dot ${action.tone}`} /><div className="action-main"><h3>{action.title}</h3><p>{action.detail}</p></div><span className={`category-tag ${action.tone}`}>{action.label}</span><button className="dismiss-button" onClick={() => dismissAction(action.id)} aria-label={`Dismiss ${action.title}`}><HugeiconsIcon icon={Cancel01Icon} size={15} /></button><HugeiconsIcon icon={ArrowUpRight01Icon} className="row-arrow" size={17} /></article>
-              ))}
-            </div>
-          </section>
-
-          <section className="pulse-section"><div className="section-heading"><div><p className="eyebrow">THE BIG PICTURE</p><h2>Planning pulse</h2></div><button className="filter-button"><HugeiconsIcon icon={FilterIcon} size={15} /> All areas</button></div><div className="domain-grid">{domains.map((domain) => <article className="domain-card" key={domain.name}><div className={`domain-icon ${domain.tone}`}><HugeiconsIcon icon={domain.icon} size={19} /></div><div className="domain-top"><h3>{domain.name}</h3><HugeiconsIcon icon={ArrowUpRight01Icon} size={16} /></div><p>{domain.detail}</p><div className="progress-line"><span className={domain.tone} style={{ width: `${domain.progress}%` }} /></div><span className="progress-number">{domain.progress}% considered</span></article>)}</div></section>
-
-          <section className="bottom-grid"><div className="moments-panel"><div className="section-heading compact"><div><p className="eyebrow">ON THE HORIZON</p><h2>Upcoming moments</h2></div><button className="icon-button"><HugeiconsIcon icon={Calendar03Icon} size={18} /></button></div><div className="moment-list">{moments.map((moment) => <div className={`moment ${moment.active ? "active" : ""}`} key={moment.date}><span className="moment-date">{moment.date}</span><div className="moment-marker" /><div><h3>{moment.title}</h3><p>{moment.detail}</p></div></div>)}</div></div><div className="note-panel"><div className="note-top"><p className="eyebrow">FROM YOUR SHARED NOTES</p><HugeiconsIcon icon={SparklesIcon} size={18} /></div><blockquote>“We want the day to feel like a long lunch with our favorite people — nothing too precious.”</blockquote><div className="note-footer"><span className="note-avatar">A</span><span>Alex added this <b>2 days ago</b></span><button aria-label="Open shared notes"><HugeiconsIcon icon={ArrowUpRight01Icon} size={16} /></button></div></div></section>
-          <footer className="page-footer"><span>Made for the in-between moments.</span><span>Last saved just now</span></footer>
-        </div>
-      </section>
-
-      {isCommandOpen && <div className="command-overlay" role="presentation" onMouseDown={() => setCommandOpen(false)}><div className="command-modal" role="dialog" aria-modal="true" aria-label="Quick add" onMouseDown={(event) => event.stopPropagation()}><div className="command-input"><HugeiconsIcon icon={Search01Icon} size={18} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="What would you like to add?" /><kbd>ESC</kbd></div><div className="command-results">{commandItems.map((item, index) => <button key={item} onClick={() => { setCommandOpen(false); setQuery(""); }}><span className="command-key">{index + 1}</span>{item}<HugeiconsIcon icon={ArrowUpRight01Icon} size={15} /></button>)}{commandItems.length === 0 && <p className="no-results">Nothing found. Try another phrase.</p>}</div><div className="command-hint"><HugeiconsIcon icon={CommandIcon} size={13} /> Quick actions stay local in this concept</div></div></div>}
-    </main>
-  );
+    {(commandOpen || quickOpen) && <div className="overlay" onMouseDown={() => { setCommandOpen(false); setQuickOpen(false); }}><div className="modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>{commandOpen ? <><div className="modal-search"><Icon icon={Search01Icon} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search actions and domains" /><kbd>ESC</kbd></div><div className="command-list">{commands.map((item, i) => <button key={item} onClick={() => { const destination = nav.find((n) => n.label === item); if (destination) setActive(destination.label); setCommandOpen(false); }}>{destinationIcon(item)}<span>{item}</span><small>{i + 1}</small></button>)}</div><div className="modal-foot"><Icon icon={CommandIcon} size={13} /> Everything in this demo stays on this device</div></> : <QuickForm onClose={() => setQuickOpen(false)} onAdd={(title) => { setTasks((items) => [{ id: Date.now(), title, area: "Plan", due: "Today", owner: "J", done: false }, ...items]); setQuickOpen(false); notify("Added to your workspace"); }} />}</div></div>}
+    {toast && <div className="toast"><Icon icon={CheckmarkCircle02Icon} />{toast}</div>}
+  </main>;
 }
+
+function destinationIcon(item: string) { const found = nav.find((n) => n.label === item); return <Icon icon={found?.icon || PlusSignIcon} />; }
+function Header({ eyebrow, title, description, action, onAction }: { eyebrow: string; title: string; description?: string; action?: string; onAction?: () => void }) { return <div className="view-header"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1>{description && <p className="view-description">{description}</p>}</div>{action && <button className="primary-action" onClick={onAction}><Icon icon={PlusSignIcon} />{action}</button>}</div>; }
+function Toolbar({ children }: { children: React.ReactNode }) { return <div className="toolbar">{children}</div>; }
+function Overview({ onNavigate, tasks, toggleTask, onQuick }: { onNavigate: (d: Domain) => void; tasks: Task[]; toggleTask: (id: number) => void; onQuick: () => void }) { return <><div className="overview-head"><div><p className="eyebrow">SATURDAY, SEPTEMBER 14, 2025 · RAVELLO, ITALY</p><h1>Good morning, <em>June & Alex.</em></h1><p className="view-description">A beautiful day is taking shape. Here&apos;s what feels most useful right now.</p></div><div className="countdown"><b>218</b><span>DAYS TO GO</span></div></div><section className="overview-hero"><div className="hero-photo"><img src="/morrow-estate.png" alt="Sunlit stone estate in Ravello" /><span>Villa Cimbrone · Ravello</span></div><div className="hero-message"><p className="eyebrow">YOUR WEDDING, IN FOCUS</p><h2>The shape<br />of your <i>day.</i></h2><p>Unhurried, sunlit, and a little bit unexpected. Your choices are beginning to tell a story that feels unmistakably yours.</p><button className="inline-link" onClick={() => onNavigate("Design")}>Edit wedding identity <Icon icon={Edit02Icon} size={14} /></button></div></section><div className="overview-grid"><section className="overview-block"><div className="block-heading"><div><p className="eyebrow">A LITTLE MOMENTUM</p><h2>Today</h2></div><button className="inline-link" onClick={onQuick}>Quick add <Icon icon={PlusSignIcon} size={14} /></button></div><div className="task-list">{tasks.filter((t) => !t.done).slice(0, 3).map((task) => <TaskRow key={task.id} task={task} toggle={toggleTask} />)}</div></section><section className="overview-block pulse"><div className="block-heading"><div><p className="eyebrow">THE BIG PICTURE</p><h2>Planning pulse</h2></div></div>{[["Plan","68% considered"],["Guests","48 of 64 responded"],["Budget","54% allocated"],["Vendors","7 booked · 3 to review"]].map(([label, detail]) => <button className="pulse-row" key={label} onClick={() => onNavigate(label as Domain)}><span>{label}</span><small>{detail}</small><Icon icon={ArrowUpRight01Icon} size={15} /></button>)}</section></div><section className="overview-lower"><div className="moments-card"><div className="block-heading"><div><p className="eyebrow">ON THE HORIZON</p><h2>Upcoming moments</h2></div><Icon icon={Calendar03Icon} /></div>{["Venue walk-through · Mar 18","Invitations go out · Apr 02","Menu tasting · May 11","The day itself · Sep 14"].map((moment, i) => <div className={`moment-row ${i === 0 ? "current" : ""}`} key={moment}><span>{moment.split(" · ")[1]}</span><b>{moment.split(" · ")[0]}</b></div>)}</div><div className="note-card"><p className="eyebrow">FROM YOUR SHARED NOTES</p><blockquote>“We want the day to feel like a long lunch with our favorite people — nothing too precious.”</blockquote><small>Alex added this 2 days ago</small></div></section></> }
+function TaskRow({ task, toggle }: { task: Task; toggle: (id: number) => void }) { return <div className={`task-row ${task.done ? "done" : ""}`}><button className="check-button" aria-label={`Mark ${task.title} complete`} onClick={() => toggle(task.id)}>{task.done && <Icon icon={CheckmarkCircle02Icon} size={17} />}</button><div><b>{task.title}</b><small>{task.area} · {task.due}</small></div><span>{task.owner}</span></div>; }
+function Plan({ tasks, toggleTask, filter, setFilter, onAdd }: { tasks: Task[]; toggleTask: (id: number) => void; filter: string; setFilter: (s: string) => void; onAdd: () => void }) { const filtered = tasks.filter((task) => filter === "All" || (filter === "Open" ? !task.done : task.done)); return <><Header eyebrow="PLANNING / TASKS" title="Plan" description="A clear place for every small decision between now and the day." action="Add task" onAction={onAdd} /><Toolbar><div className="segmented">{["All", "Open", "Done"].map((item) => <button className={filter === item ? "active" : ""} onClick={() => setFilter(item)} key={item}>{item}</button>)}</div><button className="quiet-button"><Icon icon={FilterIcon} /> Filter by area</button></Toolbar><div className="table-shell"><div className="table-head"><span>Task</span><span>Area</span><span>Due</span><span>Owner</span></div>{filtered.map((task) => <div className="table-row plan-row" key={task.id}><TaskRow task={task} toggle={toggleTask} /><span className="table-area">{task.area}</span><span className="table-muted">{task.due}</span><span className="owner-avatar">{task.owner}</span></div>)}</div></> }
+function Timeline({ onAdd }: { onAdd: () => void }) { return <><Header eyebrow="PLANNING / WEDDING DAY" title="Timeline" description="The rhythm of the day, from the first arrival to the last dance." action="Add moment" onAction={onAdd} /><div className="date-strip"><button><Icon icon={ArrowLeft01Icon} /></button><div><b>Saturday, September 14, 2025</b><small>Villa Cimbrone · Ravello, Italy</small></div><button><Icon icon={ArrowRight01Icon} /></button></div><div className="timeline-list">{moments.map((moment, i) => <div className="timeline-row" key={moment}><time>{["14:30","16:00","17:00","18:30","20:00","21:30","23:00"][i]!}</time><span className={`timeline-rule ${i === 2 ? "highlight" : ""}`} /><div><b>{moment}</b><small>{["Guest arrival and welcome drinks","Aperitivo in the garden","Ceremony beneath the lemon trees","Cocktails and canapés","Dinner on the terrace","First dance and live music","Midnight gelato cart"][i]!}</small></div><button className="row-edit"><Icon icon={Edit02Icon} size={15} /></button></div>)}</div></> }
+function Guests({ onAdd }: { onAdd: () => void }) { return <><Header eyebrow="PEOPLE / GUESTS" title="Guests" description="Your people, their details, and the small things that make them feel considered." action="Add guest" onAction={onAdd} /><Toolbar><div className="data-search"><Icon icon={Search01Icon} /><input placeholder="Search guests" /></div><div className="segmented"><button className="active">All 64</button><button>Pending 16</button><button>Accepted 48</button></div></Toolbar><div className="table-shell"><div className="table-head guests-grid"><span>Guest</span><span>Group</span><span>RSVP</span><span>Meal</span><span>Party</span></div>{guests.map((guest) => <div className="table-row guests-grid" key={guest[0]}><span className="guest-name"><span className="initial-avatar">{guest[0]![0]}</span>{guest[0]}</span><span className="table-muted">{guest[1]!}</span><span className={`status-text ${guest[2]!.toLowerCase()}`}>{guest[2]!}</span><span className="table-muted">{guest[3]}</span><span className="table-muted">{guest[4]}</span></div>)}</div></> }
+function Budget({ onAdd }: { onAdd: () => void }) { return <><Header eyebrow="MONEY / BUDGET" title="Budget" description="A composed view of what is committed, what is next, and what remains." action="Record payment" onAction={onAdd} /><div className="budget-summary"><div><small>Total budget</small><b>€52,000</b></div><div><small>Committed</small><b>€33,580</b></div><div><small>Remaining</small><b className="olive-text">€18,420</b></div><div><small>Paid to date</small><b>€21,400</b></div></div><div className="budget-layout"><div className="table-shell"><div className="table-head"><span>Category</span><span>Budget</span><span>Committed</span><span>Remaining</span></div>{[["Venue","€20,000","€18,500","€1,500"],["Food & drink","€15,000","€12,800","€2,200"],["Photography","€5,000","€4,200","€800"],["Florals","€4,000","€3,600","€400"],["Music & lighting","€5,000","€2,100","€2,900"],["Paper & details","€3,000","€2,380","€620"]].map((row) => <div className="table-row budget-row" key={row[0]!}>{row.map((value, i) => <span className={i === 0 ? "category-name" : "table-muted"} key={value}>{value}</span>)}</div>)}</div><div className="budget-note"><p className="eyebrow">THE USEFUL NUMBER</p><strong>35%</strong><p>of your total budget is still flexible, giving you room for the details that matter most.</p><div className="budget-bar"><span /></div></div></div></> }
+function Vendors({ onAdd }: { onAdd: () => void }) { return <><Header eyebrow="DETAILS / VENDORS" title="Vendors" description="The people bringing the day to life, all in one considered view." action="Add vendor" onAction={onAdd} /><Toolbar><div className="data-search"><Icon icon={Search01Icon} /><input placeholder="Search vendors" /></div><button className="quiet-button"><Icon icon={FilterIcon} /> All categories</button></Toolbar><div className="vendor-grid">{vendors.map((vendor) => <article className="vendor-card" key={vendor[0]!}><div className="vendor-card-top"><span className="vendor-initial">{vendor[0]![0]}</span><button><Icon icon={ArrowUpRight01Icon} /></button></div><p className="eyebrow">{vendor[1]!}</p><h3>{vendor[0]!}</h3><div className="vendor-meta"><span className={`status-text ${vendor[2]!.toLowerCase().replace(" ", "-")}`}>{vendor[2]!}</span><span>{vendor[3]}</span></div><small>{vendor[4]}</small></article>)}</div></> }
+function Design({ onAdd }: { onAdd: () => void }) { return <><Header eyebrow="YOUR WEDDING / DESIGN" title="Design" description="A living reference for the feeling you are creating." action="Save inspiration" onAction={onAdd} /><div className="design-intro"><div><p className="eyebrow">PALETTE</p><h2>Soft light, stone, and wild green.</h2></div><div className="palette-large"><span /><span /><span /><span /></div></div><div className="moodboard"><div className="mood-image large"><img src="/morrow-estate.png" alt="Stone estate reference" /><span>Venue atmosphere</span></div><div className="mood-card quote"><p className="eyebrow">THE FEELING</p><blockquote>“A long lunch with our favorite people.”</blockquote><small>Shared note · June</small></div><div className="mood-card material"><p className="eyebrow">MATERIALS</p><b>Linen napkins</b><b>Handwritten menus</b><b>Local citrus</b><b>Olive branches</b></div><div className="mood-card colors"><p className="eyebrow">COLOR NOTES</p><div className="color-lines"><span>Olive leaf <i /></span><span>Warm stone <i /></span><span>Sunset clay <i /></span></div></div></div></> }
+function Website({ onNotify }: { onNotify: (message: string) => void }) { return <><Header eyebrow="SHARE / WEDDING WEBSITE" title="Website" description="A simple, beautiful home for the people you are bringing together." action="Preview site" onAction={() => onNotify("Preview opened in this concept")} /><div className="website-layout"><div className="website-preview"><div className="site-nav"><b>JUNE & ALEX</b><span>Ravello · 14.09.25</span></div><div className="site-hero"><p>WE ARE GETTING MARRIED</p><h2>June <i>&</i> Alex</h2><span>Ravello, Italy</span></div><div className="site-footer">A weekend in the hills of the Amalfi Coast</div></div><div className="settings-panel"><p className="eyebrow">SITE SECTIONS</p>{["Welcome","The weekend","Travel & stay","RSVP"].map((section, i) => <button key={section}><span>{section}</span><small>{i === 0 ? "Published" : "Draft"}</small><Icon icon={ArrowUpRight01Icon} size={14} /></button>)}<button className="publish-button" onClick={() => onNotify("Your site is ready to publish")}>Publish changes <Icon icon={ArrowUpRight01Icon} size={14} /></button></div></div></> }
+function WeddingDay({ onNotify }: { onNotify: (message: string) => void }) { const readiness = ["Confirm final guest count","Print ceremony programs","Share run of show with vendors","Pack rings and personal details","Confirm transport timings"]; return <><Header eyebrow="THE DAY / FINAL DETAILS" title="Wedding day" description="The calm, practical view for when the planning becomes the day." action="Mark ready" onAction={() => onNotify("Readiness saved locally")} /><div className="readiness-banner"><div><p className="eyebrow">FINAL READINESS</p><h2>Everything is coming together.</h2><p>3 of 5 final details are complete.</p></div><strong>60%</strong></div><div className="day-layout"><div className="day-checklist"><p className="eyebrow">FINAL CHECKLIST</p>{readiness.map((item, i) => <label key={item} className={i < 3 ? "checked" : ""}><span>{i < 3 && <Icon icon={CheckmarkCircle02Icon} size={17} />}</span>{item}<small>{i < 3 ? "Done" : "To do"}</small></label>)}</div><div className="contacts"><p className="eyebrow">KEY CONTACTS</p>{[["Lucia Bianchi","Venue lead","+39 333 456 781"],["Marta Green","Photographer","+44 7700 900 221"],["Marco Bellini","Catering","+39 333 112 098"]].map((contact) => <div className="contact-row" key={contact[0]}><span className="initial-avatar">{contact[0]![0]}</span><div><b>{contact[0]}</b><small>{contact[1]}</small></div><button onClick={() => onNotify(`Contact card for ${contact[0]}`)}><Icon icon={ArrowUpRight01Icon} size={15} /></button></div>)}</div></div></> }
+function QuickForm({ onClose, onAdd }: { onClose: () => void; onAdd: (title: string) => void }) { const [title, setTitle] = useState(""); return <div className="quick-form"><div className="modal-title"><div><p className="eyebrow">QUICK ADD</p><h2>Add to your workspace</h2></div><button onClick={onClose} aria-label="Close"><Icon icon={Cancel01Icon} /></button></div><label>What would you like to add?<input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Confirm ceremony readings" onKeyDown={(event) => { if (event.key === "Enter" && title.trim()) onAdd(title.trim()); }} /></label><div className="quick-options"><button>Task</button><button>Guest</button><button>Vendor</button><button>Payment</button></div><button className="primary-action full" disabled={!title.trim()} onClick={() => onAdd(title.trim())}>Add to Plan <Icon icon={PlusSignIcon} /></button></div>; }
