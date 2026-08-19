@@ -1,0 +1,104 @@
+import { convexTest } from "convex-test";
+import { register as registerBetterAuth } from "@convex-dev/better-auth/test";
+import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test";
+import { register as registerWorkpool } from "@convex-dev/workpool/test";
+import { register as registerInvitations } from "@vllnt/convex-invitations/test";
+
+import { components, internal } from "./_generated/api";
+import schema from "./schema";
+
+const modules = import.meta.glob("./**/*.ts");
+
+export function makeConvexTest() {
+  const t = convexTest(schema, modules);
+  registerBetterAuth(t);
+  registerRateLimiter(t);
+  registerInvitations(t as never);
+  registerWorkpool(t);
+  return t;
+}
+
+type ConvexTest = ReturnType<typeof makeConvexTest>;
+
+export async function signIn(t: ConvexTest, email: string) {
+  const now = Date.now();
+  const authUser = (await t.run(async (ctx) => {
+    return await ctx.runMutation(components.betterAuth.adapter.create, {
+      input: {
+        model: "user",
+        data: {
+          createdAt: now,
+          updatedAt: now,
+          email,
+          emailVerified: true,
+          name: email,
+        },
+      },
+    });
+  })) as { _id: string };
+
+  const session = (await t.run(async (ctx) => {
+    return await ctx.runMutation(components.betterAuth.adapter.create, {
+      input: {
+        model: "session",
+        data: {
+          createdAt: now,
+          updatedAt: now,
+          expiresAt: now + 60 * 60 * 1000,
+          token: `token-${email}`,
+          userId: authUser._id,
+        },
+      },
+    });
+  })) as { _id: string };
+
+  await t.mutation(internal.users.createFromAuth.handler.createFromAuth, {
+    userId: authUser._id,
+  });
+
+  return t.withIdentity({
+    subject: authUser._id,
+    sessionId: session._id,
+    issuer: "https://auth.example",
+    tokenIdentifier: `https://auth.example|${authUser._id}`,
+  });
+}
+
+export async function extraSession(
+  t: ConvexTest,
+  email: string,
+  label: string,
+) {
+  const now = Date.now();
+  const authUser = (await t.run(async (ctx) => {
+    return await ctx.runQuery(components.betterAuth.adapter.findOne, {
+      model: "user",
+      where: [{ field: "email", value: email }],
+    });
+  })) as { _id: string } | null;
+  if (authUser === null) {
+    throw new Error(`No auth user for ${email}`);
+  }
+
+  const session = (await t.run(async (ctx) => {
+    return await ctx.runMutation(components.betterAuth.adapter.create, {
+      input: {
+        model: "session",
+        data: {
+          createdAt: now,
+          updatedAt: now,
+          expiresAt: now + 60 * 60 * 1000,
+          token: `token-${email}-${label}`,
+          userId: authUser._id,
+        },
+      },
+    });
+  })) as { _id: string };
+
+  return t.withIdentity({
+    subject: authUser._id,
+    sessionId: session._id,
+    issuer: "https://auth.example",
+    tokenIdentifier: `https://auth.example|${authUser._id}`,
+  });
+}

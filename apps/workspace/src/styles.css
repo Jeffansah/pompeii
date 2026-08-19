@@ -1,0 +1,683 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.9766 0.0057 84.5661);
+  --foreground: oklch(0.2353 0.0419 269.0309);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2353 0.0419 269.0309);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2353 0.0419 269.0309);
+  --primary: oklch(0.6391 0.0434 153.9644);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.8683 0.0399 119.7744);
+  --secondary-foreground: oklch(0.2353 0.0419 269.0309);
+  --muted: oklch(0.9276 0.0096 93.5738);
+  --muted-foreground: oklch(0.5471 0.0321 263.2921);
+  --accent: oklch(0.8289 0.0314 136.1627);
+  --accent-foreground: oklch(0.2353 0.0419 269.0309);
+  --destructive: oklch(0.5876 0.2236 28.4853);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9276 0.0096 93.5738);
+  --input: oklch(0.9276 0.0096 93.57);
+  --ring: oklch(0.6391 0.0434 153.9644);
+  --chart-1: oklch(0.6391 0.0434 153.9644);
+  --chart-2: oklch(0.7371 0.0679 121.2837);
+  --chart-3: oklch(0.6831 0.0587 136.1851);
+  --chart-4: oklch(0.5471 0.0321 263.2921);
+  --chart-5: oklch(0.9276 0.0096 93.5738);
+  --sidebar: oklch(0.9845 0.0026 106.4477);
+  --sidebar-foreground: oklch(0.2353 0.0419 269.0309);
+  --sidebar-primary: oklch(0.6391 0.0434 153.9644);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.9276 0.0096 93.5738);
+  --sidebar-accent-foreground: oklch(0.2353 0.0419 269.0309);
+  --sidebar-border: oklch(0.9276 0.0096 93.5738);
+  --sidebar-ring: oklch(0.6391 0.0434 153.9644);
+  --avatar-1: oklch(0.80 0.09 154);
+  --avatar-2: oklch(0.80 0.09 172);
+  --avatar-3: oklch(0.80 0.09 190);
+  --avatar-4: oklch(0.80 0.09 208);
+  --avatar-5: oklch(0.80 0.09 226);
+  --avatar-6: oklch(0.80 0.09 244);
+  --avatar-7: oklch(0.80 0.09 262);
+  --avatar-8: oklch(0.80 0.09 280);
+  --avatar-9: oklch(0.80 0.09 298);
+  --avatar-10: oklch(0.80 0.09 316);
+  --avatar-11: oklch(0.80 0.09 334);
+  --avatar-12: oklch(0.80 0.09 352);
+  --avatar-13: oklch(0.80 0.09 10);
+  --avatar-14: oklch(0.80 0.09 28);
+  --avatar-15: oklch(0.80 0.09 46);
+  --avatar-16: oklch(0.80 0.09 64);
+  --avatar-17: oklch(0.80 0.09 82);
+  --avatar-18: oklch(0.80 0.09 100);
+  --avatar-19: oklch(0.80 0.09 118);
+  --avatar-20: oklch(0.80 0.09 136);
+  --font-sans: "PT Serif", ui-serif, serif;
+  --font-serif: Signifier, Georgia, serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+  --radius: 0rem; /* was 0.35rem */
+  --shadow-x: 0px;
+  --shadow-y: 1px;
+  --shadow-blur: 2px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.04;
+  --shadow-color: #161d32;
+  --shadow-2xs: 0px 1px 2px 0px hsl(225 38.8889% 14.1176% / 0.02);
+  --shadow-xs: 0px 1px 2px 0px hsl(225 38.8889% 14.1176% / 0.02);
+  --shadow-sm:
+    0px 1px 2px 0px hsl(225 38.8889% 14.1176% / 0.04),
+    0px 1px 2px -1px hsl(225 38.8889% 14.1176% / 0.04);
+  --shadow:
+    0px 1px 2px 0px hsl(225 38.8889% 14.1176% / 0.04),
+    0px 1px 2px -1px hsl(225 38.8889% 14.1176% / 0.04);
+  --shadow-md:
+    0px 1px 2px 0px hsl(225 38.8889% 14.1176% / 0.04),
+    0px 2px 4px -1px hsl(225 38.8889% 14.1176% / 0.04);
+  --shadow-lg:
+    0px 1px 2px 0px hsl(225 38.8889% 14.1176% / 0.04),
+    0px 4px 6px -1px hsl(225 38.8889% 14.1176% / 0.04);
+  --shadow-xl:
+    0px 1px 2px 0px hsl(225 38.8889% 14.1176% / 0.04),
+    0px 8px 10px -1px hsl(225 38.8889% 14.1176% / 0.04);
+  --shadow-2xl: 0px 1px 2px 0px hsl(225 38.8889% 14.1176% / 0.1);
+  --tracking-normal: 0em;
+  --spacing: 0.23rem;
+}
+
+:root {
+  --stagger-dur: 500ms;
+  --stagger-distance: 12px;
+  --stagger-stagger: 40ms;
+  --stagger-blur: 3px;
+  --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --page-slide-dur: 250ms;
+  --page-fade-dur: 250ms;
+  --page-slide-distance: 8px;
+  --page-blur: 3px;
+  --page-stagger: 0ms;
+  --page-exit-enabled: 1;
+  --page-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --page-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --modal-open-dur: 250ms;
+  --modal-close-dur: 150ms;
+  --modal-scale: 0.96;
+  --modal-scale-close: 0.96;
+  --modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --shake-distance: 6px;
+  --shake-overshoot: 4px;
+  --shake-dur-a: 80ms;
+  --shake-dur-b: 60ms;
+  --shake-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --revert-hold: 3000ms;
+  --revert-dur: 280ms;
+  --resize-dur: 300ms;
+  --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --loader-open-dur: 250ms;
+  --loader-close-dur: 150ms;
+  --loader-pulse-dur: 500ms;
+  --loader-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --pulse-dur: 1000ms;
+  --pulse-count: 1;
+  --pulse-min: 0.5;
+  --reveal-dur: 400ms;
+  --reveal-blur: 2px;
+  --reveal-ease: ease-in-out;
+  --icon-swap-dur: 250ms;
+  --icon-swap-blur: 2px;
+  --icon-swap-start-scale: 0.25;
+  --icon-swap-ease: ease-in-out;
+}
+
+.dark {
+  --background: oklch(0.1448 0 0);
+  --foreground: oklch(0.9702 0 0);
+  --card: oklch(0.1822 0 0);
+  --card-foreground: oklch(0.9702 0 0);
+  --popover: oklch(0.1822 0 0);
+  --popover-foreground: oklch(0.9702 0 0);
+  --primary: oklch(0.6391 0.0434 153.9644);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.2178 0 0);
+  --secondary-foreground: oklch(0.9702 0 0);
+  --muted: oklch(0.2178 0 0);
+  --muted-foreground: oklch(0.7058 0 0);
+  --accent: oklch(0.3764 0.0347 153.9615);
+  --accent-foreground: oklch(0.9702 0 0);
+  --destructive: oklch(0.6496 0.2362 26.9032);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.285 0 0);
+  --input: oklch(0.1822 0 0);
+  --ring: oklch(0.6391 0.0434 153.9644);
+  --chart-1: oklch(0.6391 0.0434 153.9644);
+  --chart-2: oklch(0.7371 0.0679 121.2837);
+  --chart-3: oklch(0.6831 0.0587 136.1851);
+  --chart-4: oklch(0.5471 0.0321 263.2921);
+  --chart-5: oklch(0.5141 0.0392 151.3754);
+  --sidebar: oklch(0.1684 0 0);
+  --sidebar-foreground: oklch(0.9702 0 0);
+  --sidebar-primary: oklch(0.6391 0.0434 153.9644);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.2178 0 0);
+  --sidebar-accent-foreground: oklch(0.9702 0 0);
+  --sidebar-border: oklch(0.285 0 0);
+  --sidebar-ring: oklch(0.6391 0.0434 153.9644);
+  --avatar-1: oklch(0.42 0.08 154);
+  --avatar-2: oklch(0.42 0.08 172);
+  --avatar-3: oklch(0.42 0.08 190);
+  --avatar-4: oklch(0.42 0.08 208);
+  --avatar-5: oklch(0.42 0.08 226);
+  --avatar-6: oklch(0.42 0.08 244);
+  --avatar-7: oklch(0.42 0.08 262);
+  --avatar-8: oklch(0.42 0.08 280);
+  --avatar-9: oklch(0.42 0.08 298);
+  --avatar-10: oklch(0.42 0.08 316);
+  --avatar-11: oklch(0.42 0.08 334);
+  --avatar-12: oklch(0.42 0.08 352);
+  --avatar-13: oklch(0.42 0.08 10);
+  --avatar-14: oklch(0.42 0.08 28);
+  --avatar-15: oklch(0.42 0.08 46);
+  --avatar-16: oklch(0.42 0.08 64);
+  --avatar-17: oklch(0.42 0.08 82);
+  --avatar-18: oklch(0.42 0.08 100);
+  --avatar-19: oklch(0.42 0.08 118);
+  --avatar-20: oklch(0.42 0.08 136);
+  --font-sans: "PT Serif", ui-serif, serif;
+  --font-serif: Signifier, Georgia, serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+  --radius: 0.35rem;
+  --shadow-x: 0px;
+  --shadow-y: 1px;
+  --shadow-blur: 2px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.04;
+  --shadow-color: #000000;
+  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.02);
+  --shadow-xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.02);
+  --shadow-sm:
+    0px 1px 2px 0px hsl(0 0% 0% / 0.04), 0px 1px 2px -1px hsl(0 0% 0% / 0.04);
+  --shadow:
+    0px 1px 2px 0px hsl(0 0% 0% / 0.04), 0px 1px 2px -1px hsl(0 0% 0% / 0.04);
+  --shadow-md:
+    0px 1px 2px 0px hsl(0 0% 0% / 0.04), 0px 2px 4px -1px hsl(0 0% 0% / 0.04);
+  --shadow-lg:
+    0px 1px 2px 0px hsl(0 0% 0% / 0.04), 0px 4px 6px -1px hsl(0 0% 0% / 0.04);
+  --shadow-xl:
+    0px 1px 2px 0px hsl(0 0% 0% / 0.04), 0px 8px 10px -1px hsl(0 0% 0% / 0.04);
+  --shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.1);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    margin: 0;
+    letter-spacing: var(--tracking-normal);
+  }
+}
+
+.draw-squiggle {
+  clip-path: inset(0 100% 0 0);
+  animation: draw-squiggle var(--stagger-dur) var(--stagger-dur)
+    var(--stagger-ease) forwards;
+}
+
+@keyframes draw-squiggle {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Lines start translated down + blurred + invisible; .is-shown
+   on the parent flips them to their resting state. The second
+   line's transition-delay holds it back by --stagger-stagger
+   so the eye lands on the headline first. */
+.t-stagger-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(var(--stagger-distance));
+  filter: blur(var(--stagger-blur));
+  transition:
+    opacity var(--stagger-dur) var(--stagger-ease),
+    transform var(--stagger-dur) var(--stagger-ease),
+    filter var(--stagger-dur) var(--stagger-ease);
+  will-change: transform, opacity, filter;
+}
+.t-stagger-line--2 {
+  transition-delay: var(--stagger-stagger);
+}
+.t-stagger-line--3 {
+  transition-delay: calc(var(--stagger-stagger) * 2);
+}
+
+.t-stagger.is-shown .t-stagger-line {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+/* Exit decouples from the stagger: same fade for every line,
+   no Y return, no blur — so the disappearance reads as a
+   single quiet fade instead of a reverse reveal. */
+.t-stagger.is-hiding .t-stagger-line {
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 200ms ease,
+    transform 0s linear,
+    filter 0s linear;
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-stagger-line {
+    transition: none !important;
+  }
+
+  .draw-squiggle {
+    clip-path: none;
+    animation: none;
+  }
+
+  .t-page-slide .t-page {
+    transition: none !important;
+  }
+}
+
+.t-page-slide {
+  position: relative;
+  display: grid;
+}
+
+.t-page-slide .t-page {
+  grid-area: 1 / 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(
+    calc(var(--t-page-from-x, 0px) * var(--page-exit-enabled))
+  );
+  filter: blur(calc(var(--page-blur) * var(--page-exit-enabled)));
+  transition:
+    opacity var(--page-fade-dur) var(--page-fade-ease),
+    transform var(--page-slide-dur) var(--page-slide-ease),
+    filter var(--page-slide-dur) var(--page-slide-ease);
+  will-change: opacity, transform, filter;
+}
+
+.t-page-slide[data-page="1"] .t-page[data-page-id="1"],
+.t-page-slide[data-page="2"] .t-page[data-page-id="2"],
+.t-page-slide[data-page="3"] .t-page[data-page-id="3"],
+.t-page-slide[data-page="4"] .t-page[data-page-id="4"],
+.t-page-slide[data-page="5"] .t-page[data-page-id="5"],
+.t-page-slide[data-page="6"] .t-page[data-page-id="6"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  filter: blur(0);
+  transition-delay: var(--page-stagger);
+}
+
+.t-modal {
+  transform-origin: center;
+  transform: scale(var(--modal-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--modal-open-dur) var(--modal-ease),
+    opacity var(--modal-open-dur) var(--modal-ease);
+  will-change: transform, opacity;
+}
+.t-modal.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.t-modal.is-closing {
+  transform: scale(var(--modal-scale-close));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--modal-close-dur) var(--modal-ease),
+    opacity var(--modal-close-dur) var(--modal-ease);
+}
+
+.t-modal-overlay {
+  opacity: 0;
+  transition: opacity var(--modal-open-dur) var(--modal-ease);
+}
+.t-modal-overlay.is-open {
+  opacity: 1;
+}
+.t-modal-overlay.is-closing {
+  opacity: 0;
+  transition: opacity var(--modal-close-dur) var(--modal-ease);
+}
+
+/* Border-color tween. Define your input's default / focused
+   / error border-color in your own component CSS — this rule
+   only owns the interpolation. Use a constant border-width
+   across states so the tween never shifts inner content. */
+.t-input {
+  transition: border-color 150ms ease-out;
+  will-change: transform;
+}
+.t-input.is-error {
+  /* Error border auto-reverts on the hold timer, so the
+     fade-out uses the slower revert duration (matches the
+     message fade). */
+  border-color: var(--destructive);
+  transition: border-color var(--revert-dur, 280ms) ease-out;
+}
+
+/* Error message reveal. Visibility is delayed by --revert-dur
+   on hide so the message stays painted for the full opacity
+   fade-out. Entering .is-error drops the delay to 0 so the
+   message becomes visible immediately. */
+.t-error-msg {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--revert-dur, 280ms) ease-out,
+    visibility 0s linear var(--revert-dur, 280ms);
+}
+.t-input-wrap.is-error .t-error-msg {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--revert-dur, 280ms) ease-out,
+    visibility 0s linear 0s;
+}
+
+/* Multi-segment keyframe with per-stop easing so each leg
+   of the shake follows its own cubic-bezier independently.
+   %-stops are cumulative durations as a fraction of the
+   total (80, 60, 80, 60 = 280ms): 28.57%, 57.14%, 78.57%,
+   100%. Recompute if any segment duration changes. */
+.t-input.is-shaking {
+  animation: t-input-shake calc(var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2)
+    linear;
+}
+@keyframes t-input-shake {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: var(--shake-ease);
+  }
+  28.57% {
+    transform: translateX(var(--shake-distance));
+    animation-timing-function: var(--shake-ease);
+  }
+  57.14% {
+    transform: translateX(calc(var(--shake-distance) * -1));
+    animation-timing-function: var(--shake-ease);
+  }
+  78.57% {
+    transform: translateX(var(--shake-overshoot));
+    animation-timing-function: var(--shake-ease);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-modal {
+    transition: none !important;
+  }
+  .t-modal-overlay {
+    transition: none !important;
+  }
+  .t-input {
+    animation: none !important;
+    transform: none !important;
+  }
+  .t-resize {
+    transition: none !important;
+  }
+}
+
+.t-resize {
+  transition:
+    width var(--resize-dur) var(--resize-ease),
+    height var(--resize-dur) var(--resize-ease);
+  will-change: width, height;
+}
+
+.t-icon-swap {
+  position: relative;
+  display: inline-grid;
+}
+.t-icon-swap .t-icon {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--icon-swap-dur) var(--icon-swap-ease),
+    filter var(--icon-swap-dur) var(--icon-swap-ease),
+    transform var(--icon-swap-dur) var(--icon-swap-ease);
+  will-change: opacity, filter, transform;
+}
+.t-icon-swap[data-state="a"] .t-icon[data-icon="a"],
+.t-icon-swap[data-state="b"] .t-icon[data-icon="b"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+.t-icon-swap[data-state="a"] .t-icon[data-icon="b"],
+.t-icon-swap[data-state="b"] .t-icon[data-icon="a"] {
+  opacity: 0;
+  filter: blur(var(--icon-swap-blur));
+  transform: scale(var(--icon-swap-start-scale));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-icon-swap .t-icon {
+    transition: none !important;
+  }
+}
+
+.t-loader-dots {
+  display: grid;
+  grid-template-columns: 0fr;
+  transition: grid-template-columns var(--resize-dur) var(--resize-ease);
+}
+
+.t-loader-dots[data-open="true"] {
+  grid-template-columns: 1fr;
+}
+
+.t-loader-dots-inner {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  overflow: hidden;
+  padding-block: 4px;
+  margin-block: -4px;
+  padding-inline-start: 8px;
+}
+
+.t-loader-dot {
+  --loader-gap: 8px;
+  --loader-spread-max: 1.5px;
+  --loader-spread-mid: 0.75px;
+  width: 3px;
+  aspect-ratio: 1;
+  flex: none;
+  margin-inline: calc(var(--loader-gap) + var(--loader-spread-max));
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow:
+    var(--loader-gap) 0 0 var(--loader-spread-max),
+    calc(var(--loader-gap) * 2) 0 0 var(--loader-spread-mid),
+    calc(var(--loader-gap) * 3) 0 0 0;
+  transform: translateX(calc(var(--loader-gap) * -2));
+  will-change: opacity, box-shadow;
+  transition: opacity var(--loader-close-dur) var(--loader-ease);
+}
+
+.t-loader-dots[data-open="true"] .t-loader-dot {
+  opacity: 1;
+  transition-duration: var(--loader-open-dur);
+  animation: t-loader-pulse var(--loader-pulse-dur) linear infinite alternate;
+}
+
+@keyframes t-loader-pulse {
+  50% {
+    box-shadow:
+      var(--loader-gap) 0 0 var(--loader-spread-mid),
+      calc(var(--loader-gap) * 2) 0 0 var(--loader-spread-max),
+      calc(var(--loader-gap) * 3) 0 0 var(--loader-spread-mid);
+  }
+  100% {
+    box-shadow:
+      var(--loader-gap) 0 0 0,
+      calc(var(--loader-gap) * 2) 0 0 var(--loader-spread-mid),
+      calc(var(--loader-gap) * 3) 0 0 var(--loader-spread-max);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-loader-dots {
+    transition: none !important;
+  }
+  .t-loader-dot {
+    animation: none !important;
+    transition: none !important;
+    box-shadow:
+      var(--loader-gap) 0 0 var(--loader-spread-mid),
+      calc(var(--loader-gap) * 2) 0 0 var(--loader-spread-max),
+      calc(var(--loader-gap) * 3) 0 0 var(--loader-spread-mid);
+  }
+  .t-loader-dots[data-open="true"] .t-loader-dot {
+    opacity: 1;
+  }
+}
+
+.t-skel {
+  position: relative;
+}
+.t-skel-skeleton,
+.t-skel-content {
+  position: absolute;
+  inset: 0;
+}
+
+.t-skel-skeleton {
+  z-index: 1;
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    opacity var(--reveal-dur) var(--reveal-ease),
+    filter var(--reveal-dur) var(--reveal-ease);
+}
+.t-skel-content {
+  z-index: 2;
+  opacity: 0;
+  filter: blur(var(--reveal-blur));
+  transition:
+    opacity var(--reveal-dur) var(--reveal-ease),
+    filter var(--reveal-dur) var(--reveal-ease);
+}
+.t-skel.is-revealed .t-skel-skeleton {
+  opacity: 0;
+  filter: blur(var(--reveal-blur));
+}
+.t-skel.is-revealed .t-skel-content {
+  opacity: 1;
+  filter: blur(0);
+}
+/* Snap-back when replaying: kill transitions so the reverse
+   (revealed → skeleton) is instant. Drop `.is-resetting`
+   after a forced reflow and the next reveal animates again. */
+.t-skel.is-resetting .t-skel-skeleton,
+.t-skel.is-resetting .t-skel-content {
+  transition: none !important;
+}
+
+/* Pulse: place the animation on the bar/avatar children, not
+   on the skeleton itself, so the skeleton's opacity / filter
+   stay free for the cross-fade transition above. */
+.t-skel-skeleton.is-pulsing > * {
+  animation: t-skel-pulse var(--pulse-dur) ease-in-out var(--pulse-count);
+}
+@keyframes t-skel-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: var(--pulse-min);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-skel-skeleton,
+  .t-skel-content {
+    transition: none !important;
+  }
+  .t-skel-skeleton.is-pulsing > * {
+    animation: none !important;
+  }
+}

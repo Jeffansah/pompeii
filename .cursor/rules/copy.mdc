@@ -1,0 +1,23 @@
+---
+description: Product copy punctuation. No middle-dot separators or em dashes.
+alwaysApply: true
+---
+
+# Copy
+
+Do not use middle dots (`·`) as separators. Do not use em dashes (`—`) or en dashes (`–`) in product copy, errors, labels, or comments we write.
+
+Split into two fields, two sentences, or a comma. Domain names and code (`wedding.pompeii.com`, `foo.bar`) are fine.
+
+```tsx
+// BAD
+<p>{coupleA} · {coupleB}</p>
+<p>This step didn't save — go back or retry.</p>
+
+// GOOD
+<Label>You</Label>
+<p>{coupleA}</p>
+<Label>Your partner</Label>
+<p>{coupleB}</p>
+<p>This step didn't save, go back or retry.</p>
+```

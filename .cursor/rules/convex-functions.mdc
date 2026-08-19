@@ -1,0 +1,37 @@
+---
+description: Use authenticated custom Convex functions; check Convex libraries before hand-rolling; stop before adding a new wrapper.
+alwaysApply: true
+---
+
+# Convex functions and libraries
+
+## Authenticated functions
+
+Product functions that require a signed-in user use `authenticatedQuery` / `authenticatedMutation` / `authenticatedAction` from `convex/lib/customFunctions/`. Those wrappers call `authComponent.safeGetAuthUser` and throw `UNAUTHENTICATED` via `throwAppError`. Query and mutation handlers read `ctx.user` (app `users` row) and `ctx.authUser` (Better Auth user). Action handlers read `ctx.authUser`; look up `ctx.user` with `internal.users.getByAuthUserId` only when the app row is needed. Do not call `ctx.auth.getUserIdentity()` in product handlers.
+
+Leave plain `query` / `mutation` / `action` / `internal*` for public or optional-auth work (`getCurrentUser`, health, magic-link cooldown) and triggers.
+
+If a new function does not fit those wrappers, **stop and discuss** before adding another custom query/mutation/action.
+
+```ts
+// BAD
+export const getDraft = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+  },
+});
+
+// GOOD
+export const getDraft = authenticatedQuery({
+  args: {},
+  returns: v.union(v.null(), draftValidator),
+  handler: async (ctx) => {
+    // ctx.user is the app users row
+  },
+});
+```
+
+## Check the shelf first
+
+Before a new Convex helper, table, or pattern, pause and check: `convex-helpers`, installed `@convex-dev/*` components, Better Auth (`safeGetAuthUser` / `getAuthUser`), and other libs already in the repo. Do not hand-roll something they already solve. If it is a new capability, discuss before installing.

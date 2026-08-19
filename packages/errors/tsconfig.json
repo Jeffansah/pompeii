@@ -1,0 +1,4 @@
+{
+  "extends": "@pompeii/typescript-config/library.json",
+  "include": ["src", "test"]
+}

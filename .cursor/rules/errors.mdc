@@ -1,0 +1,26 @@
+---
+description: Throw structured app errors from Convex; parse them on the client.
+globs: convex/**/*.ts,packages/errors/**/*.ts,apps/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# App errors
+
+Convex throws structured `ConvexError` payloads through `@pompeii/errors`. The client parses those into `ClientError`. Do not `throw new Error(...)` or `throw new ConvexError("string")` for anything the client should handle.
+
+Codes are domain-scoped, then use-case. Generic codes (`INTERNAL`, `UNAUTHENTICATED`) only when the failure is actually generic. Product failures live under `codes/<domain>/<use-case>.ts` (`AppErrorCode.weddings.createWedding.NAME_REQUIRED`). Messages live in the catalog. Do not pass a message into `throwAppError`. Tests live in `packages/errors/test/`, not `src/`.
+
+```ts
+// BAD
+throw new Error("Unauthenticated");
+throwAppError(AppErrorCode.VALIDATION);
+
+// GOOD
+throwAppError(AppErrorCode.UNAUTHENTICATED);
+throwAppError(AppErrorCode.weddings.createWedding.NAME_REQUIRED);
+```
+
+- Convex: `import { AppErrorCode, throwAppError } from "@pompeii/errors/convex"`
+- Client: `clientErrorMessage` / `parseClientError` from `@pompeii/errors/client`
+- New client-facing failure: add a use-case file under `packages/errors/src/codes/<domain>/` first
+- Impossible states can stay `INTERNAL`

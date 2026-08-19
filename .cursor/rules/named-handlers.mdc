@@ -1,0 +1,39 @@
+---
+description: Extract handlers into named functions; never inline async IIFEs in JSX.
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Named handlers
+
+Do not put control flow in JSX props. Extract a named function in the component (or a hook).
+
+```tsx
+// BAD
+<Button
+  onClick={() => {
+    void (async () => {
+      setIsResending(true);
+      try {
+        await requestMagicLink(email);
+      } finally {
+        setIsResending(false);
+      }
+    })();
+  }}
+/>
+
+// GOOD
+const resend = async () => {
+  setIsResending(true);
+  try {
+    await requestMagicLink(email);
+  } finally {
+    setIsResending(false);
+  }
+};
+
+<Button onClick={() => void resend()} />
+```
+
+Same for `onSubmit`, `onChange`, and `form.handleSubmit(...)`. One-line wrappers like `() => void resend()` are fine. `try`/`finally`, awaits, and state updates are not.

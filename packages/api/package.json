@@ -1,0 +1,23 @@
+{
+  "name": "@pompeii/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "convex": "^1.31.0"
+  },
+  "devDependencies": {
+    "@pompeii/eslint-config": "workspace:*",
+    "@pompeii/typescript-config": "workspace:*",
+    "@types/node": "^24.3.0",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.2"
+  }
+}

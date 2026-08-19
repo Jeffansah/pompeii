@@ -1,0 +1,9 @@
+node_modules
+.turbo
+dist
+.next
+coverage
+pnpm-lock.yaml
+docs
+apps/workspace/src/routeTree.gen.ts
+convex/_generated
