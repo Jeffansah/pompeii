@@ -115,12 +115,13 @@ describe("editorial/getCurrent", () => {
       async (ctx) => (await ctx.db.query("weddings").unique())!._id,
     );
 
-    await expect(
+    await expectAppError(
       asOther.query(api.editorial.getCurrent.handler.getCurrent, {
         weddingId,
         day: "2026-08-21",
       }),
-    ).resolves.toBeNull();
+      "WEDDINGS_ENTER_NOT_FOUND",
+    );
   });
 
   it("returns null when this workspace session does not point at the wedding", async () => {

@@ -3,6 +3,9 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { AppProviders } from "./providers";
 import floral from "@/assets/onboarding/floral.png";
+import { trackFocusSource } from "@/lib/shared/focus-source";
+
+trackFocusSource();
 
 if (
   window.location.pathname === "/auth" ||

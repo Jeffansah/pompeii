@@ -1,8 +1,6 @@
+import { TextSwap } from "@/components/ui/text-swap";
 import { cn } from "@/lib/shared/utils";
-import {
-  TASK_STATUS_LABELS,
-  type TaskStatus,
-} from "@/lib/wedding/tasks";
+import { TASK_STATUS_LABELS, type TaskStatus } from "@/lib/wedding/tasks";
 
 const STATUS_CHIP_CLASS: Record<TaskStatus, string> = {
   todo: "bg-info/10 text-info",
@@ -25,7 +23,7 @@ export function TaskStatusChip({
         className,
       )}
     >
-      {TASK_STATUS_LABELS[status]}
+      <TextSwap>{TASK_STATUS_LABELS[status]}</TextSwap>
     </span>
   );
 }

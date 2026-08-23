@@ -1,58 +1,44 @@
 import { v } from "convex/values";
-import type { GenericValidator, PropertyValidators } from "convex/values";
-
-import { authenticatedMutation } from "./authenticatedMutation";
-import type { Doc, Id } from "../../_generated/dataModel";
-import type { MutationCtx } from "../../_generated/server";
-import { memberFor } from "../../weddings/lib/members";
+import {
+  customCtxAndArgs,
+  customMutation,
+} from "convex-helpers/server/customFunctions";
 import { throwAppError, AppErrorCode } from "@pompeii/errors/convex";
 
-type WorkspaceAuthorizedContext = MutationCtx & {
-  authUser: unknown;
-  member: Doc<"weddingMembers">;
-  sessionId: string;
-  user: Doc<"users">;
-  workspace: Doc<"weddings">;
-};
+import { mutation } from "../../_generated/server";
+import {
+  ensureAppUser,
+  requireAuthUser,
+  requireSessionId,
+} from "../auth/functions";
+import { memberFor } from "../../weddings/lib/members";
 
-type AuthenticatedContext = Omit<
-  WorkspaceAuthorizedContext,
-  "member" | "workspace"
->;
-
-export function workspaceAuthorizedMutation(config: {
-  args: PropertyValidators;
-  handler: (
-    ctx: WorkspaceAuthorizedContext,
-    args: Record<string, unknown>,
-  ) => unknown;
-  returns: GenericValidator | PropertyValidators;
-}) {
-  return authenticatedMutation({
-    ...config,
-    args: {
-      weddingId: v.id("weddings"),
-      ...config.args,
-    },
-    handler: async (
-      ctx: AuthenticatedContext,
-      args: { weddingId: Id<"weddings"> },
-    ) => {
+export const workspaceAuthorizedMutation = customMutation(
+  mutation,
+  customCtxAndArgs({
+    args: { weddingId: v.id("weddings") },
+    input: async (ctx, args) => {
+      const authUser = await requireAuthUser(ctx);
+      const user = await ensureAppUser(ctx, authUser._id);
+      const sessionId = await requireSessionId(ctx);
       const workspace = await ctx.db.get(args.weddingId);
       if (workspace === null) {
         throwAppError(AppErrorCode.weddings.enter.NOT_FOUND);
       }
-
-      const member = await memberFor(ctx, ctx.user._id, workspace._id);
+      const member = await memberFor(ctx, user._id, workspace._id);
       if (member === null) {
         throwAppError(AppErrorCode.weddings.enter.NOT_FOUND);
       }
-
-      const { weddingId: _weddingId, ...remainingArgs } = args;
-      return config.handler(
-        { ...ctx, workspace, member } as WorkspaceAuthorizedContext,
-        remainingArgs,
-      );
+      return {
+        ctx: {
+          authUser,
+          user,
+          sessionId,
+          workspace,
+          member,
+        },
+        args: {},
+      };
     },
-  } as never);
-}
+  }),
+);

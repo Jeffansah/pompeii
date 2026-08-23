@@ -31,6 +31,8 @@ export type TableFilterDefinition = {
 
 export type TableFilterValues = Record<string, TableFilterValue | undefined>;
 
+export type TableFilterLabels = Record<string, string | undefined>;
+
 function dateFromValue(value?: string) {
   if (value === undefined) {
     return undefined;
@@ -76,9 +78,14 @@ function formatDateRangeLabel(value: { from?: string; to?: string }) {
 function filterSummary(
   definition: TableFilterDefinition,
   value: TableFilterValue | undefined,
+  labels?: TableFilterLabels,
 ) {
   if (value === undefined || value === "") {
     return undefined;
+  }
+  const labeled = labels?.[definition.id];
+  if (labeled !== undefined && labeled !== "") {
+    return labeled;
   }
   if (definition.type === "dateRange" && typeof value !== "string") {
     return formatDateRangeLabel(value);
@@ -174,12 +181,16 @@ export function TableFilters({
   onClearAll,
   className,
   renderEditor,
+  labels,
+  renderFilterHeader,
 }: {
   definitions: TableFilterDefinition[];
   values: TableFilterValues;
   onChange: (id: string, value: TableFilterValue | undefined) => void;
   onClearAll?: () => void;
   className?: string;
+  labels?: TableFilterLabels;
+  renderFilterHeader?: (definition: TableFilterDefinition) => ReactNode;
   renderEditor?: (props: {
     definition: TableFilterDefinition;
     value: TableFilterValue | undefined;
@@ -228,6 +239,7 @@ export function TableFilters({
                 const summary = filterSummary(
                   definition,
                   values[definition.id],
+                  labels,
                 );
                 return (
                   <button
@@ -255,7 +267,9 @@ export function TableFilters({
               >
                 Back to filters
               </button>
-              <p className="text-sm font-medium">{activeFilter.label}</p>
+              {renderFilterHeader?.(activeFilter) ?? (
+                <p className="text-sm font-medium">{activeFilter.label}</p>
+              )}
               {renderEditor?.({
                 definition: activeFilter,
                 value: values[activeFilter.id],
@@ -283,7 +297,7 @@ export function TableFilters({
             onClick={() => onChange(definition.id, undefined)}
             type="button"
           >
-            {filterSummary(definition, value)}
+            {filterSummary(definition, value, labels)}
             <span className="ml-1 text-muted-foreground">×</span>
           </button>
         );

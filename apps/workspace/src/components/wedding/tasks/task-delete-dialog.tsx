@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Task } from "./task-table";
+import type { Task } from "@/types/wedding/task";
 
 export function TaskDeleteDialog({
   task,
@@ -29,12 +29,14 @@ export function TaskDeleteDialog({
             Delete this task?
           </DialogTitle>
           <DialogDescription>
-            This will remove "{task?.title}" from the task list.
+            This will remove &ldquo;{task?.title}&rdquo; from the task list.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="sm:justify-start">
           <DialogClose asChild>
-            <Button variant="secondary">Cancel</Button>
+            <Button disabled={pending} variant="outline">
+              Cancel
+            </Button>
           </DialogClose>
           <Button onClick={onConfirm} pending={pending} variant="destructive">
             Delete task

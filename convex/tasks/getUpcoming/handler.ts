@@ -17,6 +17,8 @@ export const getUpcoming = workspaceAuthorizedQuery({
       )
       .order("asc")
       .take(5);
-    return await Promise.all(tasks.map((task) => toTaskView(ctx, task)));
+    return await Promise.all(
+      tasks.map((task) => toTaskView(ctx, task, ctx.user._id)),
+    );
   },
 });

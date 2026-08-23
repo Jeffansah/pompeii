@@ -1,6 +1,7 @@
 import { Task01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { convexQuery } from "@convex-dev/react-query";
+import { Link } from "@tanstack/react-router";
 import type { Id } from "@pompeii/api";
 import { api } from "@pompeii/api";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import { TaskBeginDialog } from "@/components/wedding/tasks/task-begin-dialog";
 import { TaskCreateDialog } from "@/components/wedding/tasks/task-create-dialog";
 import { TaskTable } from "@/components/wedding/tasks/task-table";
 import { TaskTableSkeleton } from "@/components/wedding/tasks/task-table-skeleton";
+import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
 import { TableEmptyState } from "@/components/ui/table-empty-state";
 import { useTaskCompletion } from "@/hooks/wedding/tasks/use-task-completion";
 import { useTaskStart } from "@/hooks/wedding/tasks/use-task-start";
@@ -51,46 +53,67 @@ export function UpcomingTasksSection({
         {displayedTasks.length > 0 ? (
           <div className="flex items-center gap-2">
             <Button asChild size="sm" variant="link">
-              <a href={`/${slug}/tasks`}>See all</a>
+              <Link
+                search={{ status: "todo", sort: "default" }}
+                to="/$slug/tasks"
+                params={{ slug }}
+              >
+                See all
+              </Link>
             </Button>
             <TaskCreateDialog variant="secondary" weddingId={weddingId} />
           </div>
         ) : null}
       </div>
 
-      {tasksQuery.isPending ? (
-        <div className="overflow-hidden rounded-none border bg-card">
-          <TaskTableSkeleton compact rows={3} />
-        </div>
-      ) : displayedTasks.length === 0 ? (
-        <TableEmptyState
-          action={
-            <TaskCreateDialog variant="secondary" weddingId={weddingId} />
-          }
-          icon={
-            <HugeiconsIcon
-              className="size-7"
-              icon={Task01Icon}
-              strokeWidth={1.5}
-            />
-          }
-          subtitle="Add the first thing you want to get done."
-          title="No tasks yet"
-        />
-      ) : (
-        <div className="overflow-hidden rounded-none border bg-card">
-          <TaskTable
-            compact
-            completedTaskId={completion.completedTaskId}
-            completingTaskId={completion.completingTaskId}
-            onComplete={completion.requestComplete}
-            onStart={start.requestStart}
-            pendingTaskId={completion.pendingTaskId}
-            startingTaskId={start.taskToStart?._id}
-            tasks={displayedTasks}
+      <SkeletonReveal
+        ready={!tasksQuery.isPending}
+        skeleton={
+          <div className="overflow-hidden rounded-none border bg-card">
+            <TaskTableSkeleton compact rows={3} />
+          </div>
+        }
+      >
+        {tasksQuery.isPending ? null : displayedTasks.length === 0 ? (
+          <TableEmptyState
+            action={
+              <TaskCreateDialog variant="secondary" weddingId={weddingId} />
+            }
+            icon={
+              <HugeiconsIcon
+                className="size-7"
+                icon={Task01Icon}
+                strokeWidth={1.5}
+              />
+            }
+            subtitle="Add the first thing you want to get done."
+            title="No tasks yet"
           />
-        </div>
-      )}
+        ) : (
+          <div className="overflow-hidden rounded-none border bg-card">
+            <TaskTable
+              compact
+              completedTaskId={completion.completedTaskId}
+              completingTaskId={completion.completingTaskId}
+              onComplete={completion.requestComplete}
+              onStart={start.requestStart}
+              pendingTaskId={completion.pendingTaskId}
+              renderTaskTitle={(task) => (
+                <Link
+                  className="min-w-0 truncate font-medium hover:underline"
+                  params={{ slug, taskId: task._id }}
+                  search={{ status: "todo", sort: "default" }}
+                  to="/$slug/tasks/$taskId"
+                >
+                  {task.title}
+                </Link>
+              )}
+              startingTaskId={start.taskToStart?._id}
+              tasks={displayedTasks}
+            />
+          </div>
+        )}
+      </SkeletonReveal>
       <TaskCompleteDialog
         error={completion.completionError}
         onConfirm={() => void completion.confirmComplete()}

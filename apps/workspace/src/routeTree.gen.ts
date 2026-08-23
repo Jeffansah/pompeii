@@ -23,6 +23,7 @@ import { Route as AuthIndexRouteImport } from './routes/auth/index'
 import { Route as AuthGetStartedRouteImport } from './routes/auth/get-started'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthResendLinkRouteImport } from './routes/auth/resend-link'
+import { Route as SlugTasksTaskIdRouteImport } from './routes/$slug/tasks_/$taskId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +95,11 @@ const AuthResendLinkRoute = AuthResendLinkRouteImport.update({
   path: '/resend-link',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const SlugTasksTaskIdRoute = SlugTasksTaskIdRouteImport.update({
+  id: '/tasks_/$taskId',
+  path: '/tasks/$taskId',
+  getParentRoute: () => SlugRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/auth/resend-link': typeof AuthResendLinkRoute
   '/$slug/': typeof SlugIndexRoute
   '/auth/': typeof AuthIndexRoute
+  '/$slug/tasks/$taskId': typeof SlugTasksTaskIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/auth/resend-link': typeof AuthResendLinkRoute
   '/$slug': typeof SlugIndexRoute
   '/auth': typeof AuthIndexRoute
+  '/$slug/tasks/$taskId': typeof SlugTasksTaskIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/auth/resend-link': typeof AuthResendLinkRoute
   '/$slug/': typeof SlugIndexRoute
   '/auth/': typeof AuthIndexRoute
+  '/$slug/tasks_/$taskId': typeof SlugTasksTaskIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/auth/resend-link'
     | '/$slug/'
     | '/auth/'
+    | '/$slug/tasks/$taskId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/auth/resend-link'
     | '/$slug'
     | '/auth'
+    | '/$slug/tasks/$taskId'
   id:
     | '__root__'
     | '/'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/auth/resend-link'
     | '/$slug/'
     | '/auth/'
+    | '/$slug/tasks_/$taskId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -298,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResendLinkRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/$slug/tasks_/$taskId': {
+      id: '/$slug/tasks_/$taskId'
+      path: '/tasks/$taskId'
+      fullPath: '/$slug/tasks/$taskId'
+      preLoaderRoute: typeof SlugTasksTaskIdRouteImport
+      parentRoute: typeof SlugRouteRoute
+    }
   }
 }
 
@@ -308,6 +327,7 @@ interface SlugRouteRouteChildren {
   SlugTasksRoute: typeof SlugTasksRoute
   SlugVendorsRoute: typeof SlugVendorsRoute
   SlugIndexRoute: typeof SlugIndexRoute
+  SlugTasksTaskIdRoute: typeof SlugTasksTaskIdRoute
 }
 
 const SlugRouteRouteChildren: SlugRouteRouteChildren = {
@@ -317,6 +337,7 @@ const SlugRouteRouteChildren: SlugRouteRouteChildren = {
   SlugTasksRoute: SlugTasksRoute,
   SlugVendorsRoute: SlugVendorsRoute,
   SlugIndexRoute: SlugIndexRoute,
+  SlugTasksTaskIdRoute: SlugTasksTaskIdRoute,
 }
 
 const SlugRouteRouteWithChildren = SlugRouteRoute._addFileChildren(

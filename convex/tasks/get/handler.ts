@@ -1,16 +1,22 @@
 import { v } from "convex/values";
 
 import { workspaceAuthorizedQuery } from "../../lib/customFunctions/workspaceAuthorizedQuery";
-import type { Id } from "../../_generated/dataModel";
-import { getTaskForWorkspace } from "../lib/getTask";
-import { taskValidator, toTaskView } from "../lib/validators";
+import { findTaskForWorkspace } from "../lib/getTask";
+import { taskDetailValidator, toTaskDetailView } from "../lib/validators";
 
 export const get = workspaceAuthorizedQuery({
-  args: { taskId: v.id("tasks") },
-  returns: v.union(v.null(), taskValidator),
+  args: { taskId: v.string() },
+  returns: v.union(v.null(), taskDetailValidator),
   handler: async (ctx, rawArgs) => {
-    const args = rawArgs as { taskId: Id<"tasks"> };
-    const task = await getTaskForWorkspace(ctx, args.taskId, ctx.workspace._id);
-    return toTaskView(ctx, task);
+    const args = rawArgs as { taskId: string };
+    const taskId = ctx.db.normalizeId("tasks", args.taskId);
+    if (taskId === null) {
+      return null;
+    }
+    const task = await findTaskForWorkspace(ctx, taskId, ctx.workspace._id);
+    if (task === null) {
+      return null;
+    }
+    return toTaskDetailView(ctx, task, ctx.user._id);
   },
 });

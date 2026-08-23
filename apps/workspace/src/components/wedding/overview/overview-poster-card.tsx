@@ -1,7 +1,9 @@
 import { type ReactNode } from "react";
 
+import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
 import { OverviewPosterImage } from "./overview-poster-image";
 import fallbackImage from "@/assets/overview/poster-fallback-scenery.jpg";
+
 export type OverviewPosterCardData = {
   stableKey: string;
   imageUrl: string;
@@ -37,57 +39,57 @@ export function OverviewPosterCard({
   card: OverviewPosterCardData | null | undefined;
   error?: boolean;
 }) {
-  if (card === undefined) {
-    if (error) {
-      return <OverviewPosterCard card={fallbackCard} />;
-    }
-
-    return <PosterCardSkeleton />;
-  }
-
-  if (card === null) {
-    return <OverviewPosterCard card={fallbackCard} />;
-  }
-
-  const hasQuote = card.quote.trim().length > 0;
+  const resolved =
+    card === undefined && error
+      ? fallbackCard
+      : card === null
+        ? fallbackCard
+        : card;
+  const ready = resolved !== undefined;
+  const hasQuote = resolved !== undefined && resolved.quote.trim().length > 0;
 
   return (
-    <article className="grid h-136 max-h-144 w-full grid-rows-[1fr_1fr] overflow-hidden bg-primary text-primary-foreground md:h-112 md:grid-rows-none md:grid-cols-[2fr_1fr] lg:h-128">
-      <OverviewPosterImage
-        key={card.stableKey}
-        imageUrl={card.imageUrl}
-        imageAlt={card.imageAlt}
-        locationCity={card.locationCity}
-        locationCountry={card.locationCountry}
-        caption={card.caption}
-      />
-      <QuotePanel>
-        {hasQuote ? (
-          <>
-            <blockquote className="min-h-[5em] font-serif text-2xl leading-tight sm:text-3xl md:text-4xl">
-              {card.quote}
-            </blockquote>
-            <footer className="flex min-h-11 flex-col gap-1 text-sm text-primary-foreground/75">
-              <cite className="not-italic">{card.author}</cite>
-              {card.sourceUrl.length > 0 && card.sourceTitle.length > 0 ? (
-                <a
-                  href={card.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline underline-offset-4"
-                >
-                  {card.sourceTitle}
-                </a>
-              ) : null}
-            </footer>
-          </>
-        ) : (
-          <p className="min-h-[5em] font-serif text-2xl leading-tight text-primary-foreground/80 sm:text-3xl md:text-4xl">
-            A thought is on its way.
-          </p>
-        )}
-      </QuotePanel>
-    </article>
+    <SkeletonReveal ready={ready} skeleton={<OverviewPosterCardSkeleton />}>
+      {resolved === undefined ? null : (
+        <article className="grid h-136 max-h-144 w-full grid-rows-[1fr_1fr] overflow-hidden bg-primary text-primary-foreground md:h-112 md:grid-rows-none md:grid-cols-[2fr_1fr] lg:h-128">
+          <OverviewPosterImage
+            key={resolved.stableKey}
+            imageUrl={resolved.imageUrl}
+            imageAlt={resolved.imageAlt}
+            locationCity={resolved.locationCity}
+            locationCountry={resolved.locationCountry}
+            caption={resolved.caption}
+          />
+          <QuotePanel>
+            {hasQuote ? (
+              <>
+                <blockquote className="min-h-[5em] font-serif text-2xl leading-tight sm:text-3xl md:text-4xl">
+                  {resolved.quote}
+                </blockquote>
+                <footer className="flex min-h-11 flex-col gap-1 text-sm text-primary-foreground/75">
+                  <cite className="not-italic">{resolved.author}</cite>
+                  {resolved.sourceUrl.length > 0 &&
+                  resolved.sourceTitle.length > 0 ? (
+                    <a
+                      href={resolved.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      {resolved.sourceTitle}
+                    </a>
+                  ) : null}
+                </footer>
+              </>
+            ) : (
+              <p className="min-h-[5em] font-serif text-2xl leading-tight text-primary-foreground/80 sm:text-3xl md:text-4xl">
+                A thought is on its way.
+              </p>
+            )}
+          </QuotePanel>
+        </article>
+      )}
+    </SkeletonReveal>
   );
 }
 
@@ -110,7 +112,7 @@ function QuotePanel({ children }: { children: ReactNode }) {
   );
 }
 
-function PosterCardSkeleton() {
+export function OverviewPosterCardSkeleton() {
   return (
     <div
       aria-busy="true"

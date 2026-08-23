@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { createFileRoute } from "@tanstack/react-router";
-import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { convexQuery } from "@convex-dev/react-query";
 import { Task01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { Id } from "@pompeii/api";
 import { api } from "@pompeii/api";
-import { z } from "zod";
 
 import { WorkspacePage } from "@/components/layout/workspace-page";
 import { TaskBeginDialog } from "@/components/wedding/tasks/task-begin-dialog";
@@ -21,36 +19,21 @@ import { TaskStatusTab } from "@/components/wedding/tasks/task-status-tab";
 import { TaskSort } from "@/components/wedding/tasks/task-sort";
 import { TaskTable } from "@/components/wedding/tasks/task-table";
 import { TaskTableSkeleton } from "@/components/wedding/tasks/task-table-skeleton";
-import type { Task } from "@/components/wedding/tasks/task-table";
+import type { Task } from "@/types/wedding/task";
+import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
 import { TableEmptyState } from "@/components/ui/table-empty-state";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Tabs, TabsContent, TabsList } from "@/components/ui/tabs";
 import { useCursorPagination } from "@/hooks/shared/use-cursor-pagination";
 import { useTaskCompletion } from "@/hooks/wedding/tasks/use-task-completion";
 import { useTaskStart } from "@/hooks/wedding/tasks/use-task-start";
+import { useTaskCommands } from "@/hooks/wedding/tasks/use-task-commands";
 import { DEFAULT_TABLE_PAGE_SIZE } from "@/lib/shared/pagination";
 import { TASK_STATUS_LABELS } from "@/lib/wedding/tasks";
+import { taskSearchSchema } from "@/schemas/wedding/tasks/search-schema";
 import { useWorkspace } from "@/stores/workspace-store";
 import { useConvex } from "convex/react";
 import { clientErrorMessage } from "@pompeii/errors/client";
-
-const taskSearchSchema = z.object({
-  status: z.enum(["todo", "in_progress", "completed"]).catch("todo"),
-  sort: z
-    .enum([
-      "default",
-      "dueDateAsc",
-      "dueDateDesc",
-      "priority",
-      "createdDesc",
-      "createdAsc",
-    ])
-    .catch("default"),
-  priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
-  category: z.string().optional(),
-  dueFrom: z.string().optional(),
-  dueTo: z.string().optional(),
-});
 
 export const Route = createFileRoute("/$slug/tasks")({
   validateSearch: taskSearchSchema,
@@ -71,13 +54,12 @@ function TasksPage() {
 }
 
 function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
-  const { status, sort, priority, category, dueFrom, dueTo } =
-    Route.useSearch();
+  const { slug } = Route.useParams();
+  const search = Route.useSearch();
+  const { status, sort, priority, category, title, assignee, dueFrom, dueTo } =
+    search;
   const navigate = useNavigate({ from: Route.fullPath });
   const convex = useConvex();
-  const currentUserQuery = useQuery({
-    ...convexQuery(api.users.current.handler.current, {}),
-  });
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [deleteTask, setDeleteTask] = useState<Task | null>(null);
   const deleteMutation = useMutation({
@@ -87,13 +69,7 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
         taskId,
       }),
   });
-  const releaseMutation = useMutation({
-    mutationFn: (taskId: Id<"tasks">) =>
-      convex.mutation(api.tasks.release.handler.release, {
-        weddingId,
-        taskId,
-      }),
-  });
+  const commands = useTaskCommands({ weddingId });
   const runAction = async (action: () => Promise<unknown>, success: string) => {
     try {
       await action();
@@ -110,16 +86,21 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
     sort,
     priority,
     category,
+    title,
+    assignee,
     dueFrom,
     dueTo,
   ]);
   const [cursor, setCursor] = useState<string | null>(null);
+  const assignedTo = assignee as Id<"users"> | "unassigned" | undefined;
   const listArgs = {
     weddingId,
     status,
     ...(sort !== undefined ? { sort } : {}),
     ...(priority !== undefined ? { priority } : {}),
     ...(category !== undefined ? { category } : {}),
+    ...(title !== undefined ? { title } : {}),
+    ...(assignedTo !== undefined ? { assignedTo } : {}),
     ...(dueFrom !== undefined ? { dueFrom } : {}),
     ...(dueTo !== undefined ? { dueTo } : {}),
     paginationOpts: { numItems: DEFAULT_TABLE_PAGE_SIZE, cursor },
@@ -150,6 +131,8 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
       weddingId,
       ...(priority !== undefined ? { priority } : {}),
       ...(category !== undefined ? { category } : {}),
+      ...(title !== undefined ? { title } : {}),
+      ...(assignedTo !== undefined ? { assignedTo } : {}),
       ...(dueFrom !== undefined ? { dueFrom } : {}),
       ...(dueTo !== undefined ? { dueTo } : {}),
     }),
@@ -163,6 +146,8 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
   const hasFilters =
     priority !== undefined ||
     category !== undefined ||
+    title !== undefined ||
+    assignee !== undefined ||
     dueFrom !== undefined ||
     dueTo !== undefined;
   const emptyCopy = hasFilters
@@ -199,6 +184,7 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
               defaultOpen={
                 new URLSearchParams(window.location.search).get("new") === "1"
               }
+              variant="default"
               weddingId={weddingId}
             />
           </div>
@@ -221,29 +207,44 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
           <div className="flex items-center justify-between gap-4">
             <TabsList aria-label="Task status">
               <TaskStatusTab
-                count={countsQuery.data?.todo}
+                count={
+                  countsQuery.data?.todo?.capped
+                    ? "99+"
+                    : countsQuery.data?.todo?.value
+                }
                 label="To do"
                 value="todo"
               />
               <TaskStatusTab
-                count={countsQuery.data?.in_progress}
+                count={
+                  countsQuery.data?.in_progress?.capped
+                    ? "99+"
+                    : countsQuery.data?.in_progress?.value
+                }
                 label="In progress"
                 value="in_progress"
               />
               <TaskStatusTab
-                count={countsQuery.data?.completed}
+                count={
+                  countsQuery.data?.completed?.capped
+                    ? "99+"
+                    : countsQuery.data?.completed?.value
+                }
                 label="Completed"
                 value="completed"
               />
             </TabsList>
             <div className="flex items-center gap-2">
               <TaskFilters
+                weddingId={weddingId}
                 onClearAll={() => {
                   void navigate({
                     search: (previous) => {
                       const next = { ...previous };
                       delete next.priority;
                       delete next.category;
+                      delete next.title;
+                      delete next.assignee;
                       delete next.dueFrom;
                       delete next.dueTo;
                       return next;
@@ -262,6 +263,13 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
                         typeof value === "string"
                       ) {
                         next.category = value;
+                      } else if (id === "title" && typeof value === "string") {
+                        next.title = value;
+                      } else if (
+                        id === "assignee" &&
+                        typeof value === "string"
+                      ) {
+                        next.assignee = value;
                       } else if (
                         id === "dueDate" &&
                         typeof value !== "string"
@@ -272,6 +280,8 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
                       if (value === undefined || value === "") {
                         if (id === "priority") delete next.priority;
                         if (id === "category") delete next.category;
+                        if (id === "title") delete next.title;
+                        if (id === "assignee") delete next.assignee;
                         if (id === "dueDate") {
                           delete next.dueFrom;
                           delete next.dueTo;
@@ -285,6 +295,8 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
                 values={{
                   ...(priority !== undefined ? { priority } : {}),
                   ...(category !== undefined ? { category } : {}),
+                  ...(title !== undefined ? { title } : {}),
+                  ...(assignee !== undefined ? { assignee } : {}),
                   ...(dueFrom !== undefined || dueTo !== undefined
                     ? { dueDate: { from: dueFrom, to: dueTo } }
                     : {}),
@@ -297,100 +309,102 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
                     replace: true,
                   });
                 }}
+                searchActive={title !== undefined}
                 value={sort}
               />
             </div>
           </div>
           <TabsContent value={status}>
-            {pagination.isLoading ? (
-              <div className="overflow-hidden rounded-none border bg-card">
-                <TaskTableSkeleton />
-              </div>
-            ) : displayedTasks.length > 0 ? (
-              <div className="overflow-hidden rounded-none border bg-card">
-                <TaskTable
-                  completedTaskId={completion.completedTaskId}
-                  completingTaskId={completion.completingTaskId}
-                  onComplete={
-                    status === "completed"
-                      ? undefined
-                      : completion.requestComplete
-                  }
-                  onStart={start.requestStart}
-                  currentUserId={currentUserQuery.data?._id}
-                  onPickup={(task) => {
-                    void runAction(
-                      () =>
-                        convex.mutation(api.tasks.pickup.handler.pickup, {
-                          weddingId,
-                          taskId: task._id,
-                        }),
-                      "Task picked up",
-                    );
-                  }}
-                  onRelease={(task) => {
-                    void runAction(
-                      () =>
-                        releaseMutation.mutateAsync(task._id),
-                      "Task released",
-                    );
-                  }}
-                  onMove={(task, nextStatus) => {
-                    void runAction(
-                      () =>
-                        convex.mutation(api.tasks.move.handler.move, {
-                          weddingId,
-                          taskId: task._id,
-                          status: nextStatus,
-                        }),
-                      `Task marked as ${TASK_STATUS_LABELS[nextStatus]}`,
-                    );
-                  }}
-                  onEdit={setEditTask}
-                  onDelete={setDeleteTask}
-                  pendingTaskId={completion.pendingTaskId}
-                  startingTaskId={start.taskToStart?._id}
-                  tasks={completion.displayedTasks}
-                />
-                <TablePagination
-                  canGoFirst={pagination.canGoPrevious}
-                  canGoNext={pagination.canGoNext}
-                  canGoPrevious={pagination.canGoPrevious}
-                  isLoading={pagination.isNavigating || tasksQuery.isPending}
-                  onFirst={() => setCursor(null)}
-                  onNext={() => {
-                    if (pagination.nextCursor !== null) {
-                      setCursor(pagination.nextCursor);
+            <SkeletonReveal
+              ready={!pagination.isLoading}
+              skeleton={
+                <div className="overflow-hidden rounded-none border bg-card">
+                  <TaskTableSkeleton />
+                </div>
+              }
+            >
+              {pagination.isLoading ? null : displayedTasks.length > 0 ? (
+                <div className="overflow-hidden rounded-none border bg-card">
+                  <TaskTable
+                    completedTaskId={completion.completedTaskId}
+                    completingTaskId={completion.completingTaskId}
+                    onComplete={
+                      status === "completed"
+                        ? undefined
+                        : completion.requestComplete
                     }
-                  }}
-                  onPrevious={() => {
-                    if (pagination.previousCursor !== null) {
-                      setCursor(pagination.previousCursor);
-                    }
-                  }}
-                />
-              </div>
-            ) : (
-              <TableEmptyState
-                action={
-                  status === "completed" ? undefined : (
-                    <TaskCreateDialog
-                      variant="secondary"
-                      weddingId={weddingId}
-                    />
-                  )
-                }
-                icon={
-                  <HugeiconsIcon
-                    className="size-7"
-                    icon={Task01Icon}
-                    strokeWidth={1.5}
+                    onStart={start.requestStart}
+                    onPickup={(task) => {
+                      void commands.pickup(task).catch(() => undefined);
+                    }}
+                    onRelease={(task) => {
+                      void commands.release(task).catch(() => undefined);
+                    }}
+                    onMove={(task, nextStatus) => {
+                      void commands
+                        .move(task, nextStatus)
+                        .catch(() => undefined);
+                    }}
+                    onEdit={setEditTask}
+                    onDelete={setDeleteTask}
+                    renderTaskTitle={(task) => (
+                      <Link
+                        className="max-w-md truncate font-medium hover:underline"
+                        params={{
+                          slug,
+                          taskId: task._id,
+                        }}
+                        search={search}
+                        to="/$slug/tasks/$taskId"
+                      >
+                        {task.title}
+                      </Link>
+                    )}
+                    pendingTaskId={completion.pendingTaskId}
+                    pendingTaskIds={commands.pendingTaskIds}
+                    startingTaskId={start.taskToStart?._id}
+                    tasks={completion.displayedTasks}
                   />
-                }
-                subtitle={emptyCopy.subtitle}
-                title={emptyCopy.title}
-              />
-            )}
+                  <TablePagination
+                    canGoFirst={pagination.canGoPrevious}
+                    canGoNext={pagination.canGoNext}
+                    canGoPrevious={pagination.canGoPrevious}
+                    isLoading={pagination.isNavigating || tasksQuery.isPending}
+                    onFirst={() => setCursor(null)}
+                    onNext={() => {
+                      if (pagination.nextCursor !== null) {
+                        setCursor(pagination.nextCursor);
+                      }
+                    }}
+                    onPrevious={() => {
+                      if (pagination.previousCursor !== null) {
+                        setCursor(pagination.previousCursor);
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <TableEmptyState
+                  action={
+                    status === "completed" ? undefined : (
+                      <TaskCreateDialog
+                        variant="default"
+                        weddingId={weddingId}
+                      />
+                    )
+                  }
+                  icon={
+                    <HugeiconsIcon
+                      className="size-7"
+                      icon={Task01Icon}
+                      strokeWidth={1.5}
+                    />
+                  }
+                  subtitle={emptyCopy.subtitle}
+                  title={emptyCopy.title}
+                />
+              )}
+            </SkeletonReveal>
           </TabsContent>
         </Tabs>
       </div>
@@ -433,7 +447,7 @@ function TasksPageContent({ weddingId }: { weddingId: Id<"weddings"> }) {
           }, "Task deleted");
         }}
         onOpenChange={(open) => {
-          if (!open) setDeleteTask(null);
+          if (!open && !deleteMutation.isPending) setDeleteTask(null);
         }}
         pending={deleteMutation.isPending}
         task={deleteTask}

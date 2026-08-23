@@ -5,6 +5,7 @@ export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
   test: {
     environment: "edge-runtime",
+    testTimeout: 15_000,
     server: {
       deps: {
         inline: ["convex-test"],

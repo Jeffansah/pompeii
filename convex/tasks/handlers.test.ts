@@ -86,6 +86,10 @@ describe("tasks", () => {
       title: "Confirm the menu",
     });
 
+    await asOwner.mutation(api.tasks.start.handler.start, {
+      weddingId,
+      taskId: task._id,
+    });
     const completed = await asOwner.mutation(
       api.tasks.complete.handler.complete,
       {
@@ -138,5 +142,47 @@ describe("tasks", () => {
       })
       .catch((caught: unknown) => caught);
     expect(parseClientError(error)?.code).toBe("TASKS_ASSIGNEE_NOT_FOUND");
+  });
+
+  it("searches titles and excludes deleted tasks from filtered counts", async () => {
+    const t = makeConvexTest();
+    const asOwner = await signIn(t, "owner@example.com");
+    await createWedding(asOwner);
+    const weddingId = await weddingIdFor(t);
+
+    const matching = await asOwner.mutation(api.tasks.create.handler.create, {
+      weddingId,
+      title: "Book the florist",
+    });
+    await asOwner.mutation(api.tasks.create.handler.create, {
+      weddingId,
+      title: "Confirm the menu",
+    });
+    const deleted = await asOwner.mutation(api.tasks.create.handler.create, {
+      weddingId,
+      title: "Book the venue",
+    });
+    await asOwner.mutation(api.tasks.delete.handler.deleteTask, {
+      weddingId,
+      taskId: deleted._id,
+    });
+
+    const result = await asOwner.query(api.tasks.list.handler.list, {
+      weddingId,
+      status: "todo",
+      title: "book",
+      paginationOpts: { cursor: null, numItems: 10 },
+    });
+    expect(result.page).toHaveLength(1);
+    expect(result.page[0]?._id).toBe(matching._id);
+
+    await expect(
+      asOwner.query(api.tasks.counts.handler.counts, {
+        weddingId,
+        title: "book",
+      }),
+    ).resolves.toMatchObject({
+      todo: { value: 1, capped: false },
+    });
   });
 });

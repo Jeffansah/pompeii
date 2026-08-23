@@ -1,9 +1,5 @@
 import * as React from "react";
-import {
-  ArrowDown01Icon,
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-} from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DayPicker,
@@ -12,6 +8,8 @@ import {
   type DropdownProps,
 } from "react-day-picker";
 import { startOfToday } from "date-fns";
+
+import { ArrowLeftIcon, ArrowRightIcon } from "@/components/icons/arrow";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -217,9 +215,9 @@ function CalendarChevron({
 }) {
   const icon =
     orientation === "left"
-      ? ArrowLeft01Icon
+      ? ArrowLeftIcon
       : orientation === "right"
-        ? ArrowRight01Icon
+        ? ArrowRightIcon
         : ArrowDown01Icon;
 
   return (

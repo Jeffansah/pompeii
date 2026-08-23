@@ -7,7 +7,7 @@ export function TaskStatusTab({
 }: {
   value: "todo" | "in_progress" | "completed";
   label: string;
-  count: number | undefined;
+  count: number | string | undefined;
 }) {
   return (
     <TabsTrigger className="gap-2" value={value}>

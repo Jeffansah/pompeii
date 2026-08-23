@@ -110,18 +110,12 @@ export default defineSchema({
     completedAt: v.union(v.number(), v.null()),
     completedBy: v.union(v.id("users"), v.null()),
     deletedAt: v.union(v.number(), v.null()),
-    sortAt: v.number(),
+    sortAt: v.optional(v.number()),
     createdAt: v.optional(v.number()),
     priorityRank: v.optional(v.number()),
     dueSortAsc: v.optional(v.number()),
     dueSortDesc: v.optional(v.number()),
   })
-    .index("by_weddingId_and_status_and_deletedAt_and_sortAt", [
-      "weddingId",
-      "status",
-      "deletedAt",
-      "sortAt",
-    ])
     .index("by_wedding_status_deletedAt_dueAsc", [
       "weddingId",
       "status",
@@ -137,13 +131,6 @@ export default defineSchema({
       "priorityRank",
       "dueSortAsc",
     ])
-    .index("by_wedding_status_deleted_due_created", [
-      "weddingId",
-      "status",
-      "deletedAt",
-      "dueDate",
-      "createdAt",
-    ])
     .index("by_wedding_status_deletedAt_dueDesc", [
       "weddingId",
       "status",
@@ -157,54 +144,29 @@ export default defineSchema({
       "priorityRank",
       "dueSortAsc",
     ])
-    .index("by_wedding_status_deletedAt_created", [
-      "weddingId",
-      "status",
-      "deletedAt",
-      "createdAt",
-    ])
-    .index("by_weddingId_and_status_and_deletedAt_and_dueDate", [
-      "weddingId",
-      "status",
-      "deletedAt",
-      "dueDate",
-    ])
-    .index("by_weddingId_status_deletedAt_dueDate_sortAt", [
-      "weddingId",
-      "status",
-      "deletedAt",
-      "dueDate",
-      "sortAt",
-    ])
-    .searchIndex("search_title", {
+    .searchIndex("search_title_v2", {
       searchField: "title",
       filterFields: [
         "weddingId",
         "status",
+        "deletedAt",
         "priority",
         "category",
         "assignedTo",
       ],
     })
-    .index("by_weddingId_and_deletedAt_and_completedAt_and_sortAt", [
-      "weddingId",
-      "deletedAt",
-      "completedAt",
-      "sortAt",
-    ])
     .index("by_wedding_deleted_completed_dueAsc", [
       "weddingId",
       "deletedAt",
       "completedAt",
       "dueSortAsc",
     ])
-    .index("by_weddingId_and_deletedAt_and_sortAt", [
+    .index("by_weddingId_and_status_and_deletedAt_and_assignedTo", [
       "weddingId",
+      "status",
       "deletedAt",
-      "sortAt",
-    ])
-    .index("by_createdBy", ["createdBy"])
-    .index("by_assignedTo", ["assignedTo"]),
+      "assignedTo",
+    ]),
   taskActivity: defineTable({
     weddingId: v.id("weddings"),
     taskId: v.id("tasks"),
@@ -223,6 +185,59 @@ export default defineSchema({
   })
     .index("by_taskId", ["taskId"])
     .index("by_weddingId", ["weddingId"]),
+  commentThreads: defineTable({
+    weddingId: v.id("weddings"),
+    subject: v.object({
+      type: v.literal("task"),
+      taskId: v.id("tasks"),
+    }),
+    subjectKey: v.string(),
+    activeCount: v.number(),
+    rootCount: v.number(),
+    lastCommentAt: v.union(v.number(), v.null()),
+  }).index("by_weddingId_and_subjectKey", ["weddingId", "subjectKey"]),
+  comments: defineTable(
+    v.union(
+      v.object({
+        kind: v.literal("root"),
+        weddingId: v.id("weddings"),
+        threadId: v.id("commentThreads"),
+        rootId: v.null(),
+        replyToId: v.null(),
+        replyToAuthorNameSnapshot: v.null(),
+        authorId: v.id("users"),
+        authorNameSnapshot: v.string(),
+        body: v.string(),
+        editedAt: v.union(v.number(), v.null()),
+        deletedAt: v.union(v.number(), v.null()),
+        isVisible: v.boolean(),
+        clientRequestId: v.string(),
+        replyCount: v.number(),
+      }),
+      v.object({
+        kind: v.literal("reply"),
+        weddingId: v.id("weddings"),
+        threadId: v.id("commentThreads"),
+        rootId: v.id("comments"),
+        replyToId: v.id("comments"),
+        replyToAuthorNameSnapshot: v.union(v.string(), v.null()),
+        authorId: v.id("users"),
+        authorNameSnapshot: v.string(),
+        body: v.string(),
+        editedAt: v.union(v.number(), v.null()),
+        deletedAt: v.union(v.number(), v.null()),
+        isVisible: v.boolean(),
+        clientRequestId: v.string(),
+        replyCount: v.number(),
+      }),
+    ),
+  )
+    .index("by_threadId_and_rootId_and_isVisible", [
+      "threadId",
+      "rootId",
+      "isVisible",
+    ])
+    .index("by_authorId_and_clientRequestId", ["authorId", "clientRequestId"]),
   taskReminders: defineTable({
     weddingId: v.id("weddings"),
     taskId: v.id("tasks"),

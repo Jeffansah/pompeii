@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
+import { ArrowRightIcon } from "@/components/icons/arrow";
 import { Button } from "@/components/ui/button";
 import { Squiggle } from "@/components/ui/squiggle";
 
@@ -40,7 +40,7 @@ function GetStartedPage() {
           <Link to="/auth/login">
             Get started
             <HugeiconsIcon
-              icon={ArrowRight02Icon}
+              icon={ArrowRightIcon}
               className="size-7"
               strokeWidth={1.5}
             />

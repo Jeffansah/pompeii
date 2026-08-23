@@ -15,6 +15,7 @@ export function QuickAdd({
       <Button
         asChild
         size="icon-lg"
+        variant="secondary"
         className={cn("shrink-0 sm:hidden", className)}
       >
         <button type="button" aria-label="Quick add" {...props}>
@@ -27,12 +28,13 @@ export function QuickAdd({
       </Button>
       <Button
         type="button"
+        variant="secondary"
         className={cn("hidden h-10 shrink-0 sm:inline-flex", className)}
         {...props}
       >
         <HugeiconsIcon
           icon={Add01Icon}
-          className="mr-2 size-4"
+          className="size-4"
           strokeWidth={1.5}
         />
         {children}

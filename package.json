@@ -31,6 +31,7 @@
     "node": "^24"
   },
   "dependencies": {
+    "@convex-dev/aggregate": "^0.2.2",
     "@convex-dev/better-auth": "^0.12.5",
     "@convex-dev/migrations": "^0.3.6",
     "@convex-dev/r2": "^0.10.2",

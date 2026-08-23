@@ -9,6 +9,16 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as comments_create_handler from "../comments/create/handler.js";
+import type * as comments_lib_commentDb from "../comments/lib/commentDb.js";
+import type * as comments_lib_displayNames from "../comments/lib/displayNames.js";
+import type * as comments_lib_subjects from "../comments/lib/subjects.js";
+import type * as comments_lib_validators from "../comments/lib/validators.js";
+import type * as comments_listReplies_handler from "../comments/listReplies/handler.js";
+import type * as comments_listRoots_handler from "../comments/listRoots/handler.js";
+import type * as comments_remove_handler from "../comments/remove/handler.js";
+import type * as comments_summary_handler from "../comments/summary/handler.js";
+import type * as comments_update_handler from "../comments/update/handler.js";
 import type * as editorial_cards from "../editorial/cards.js";
 import type * as editorial_getCurrent_handler from "../editorial/getCurrent/handler.js";
 import type * as editorial_lib_selection from "../editorial/lib/selection.js";
@@ -29,6 +39,8 @@ import type * as lib_customFunctions_workspaceAuthorizedMutation from "../lib/cu
 import type * as lib_customFunctions_workspaceAuthorizedQuery from "../lib/customFunctions/workspaceAuthorizedQuery.js";
 import type * as lib_email_resend from "../lib/email/resend.js";
 import type * as login_magicLinkCooldown_handler from "../login/magicLinkCooldown/handler.js";
+import type * as members_current_handler from "../members/current/handler.js";
+import type * as members_get_handler from "../members/get/handler.js";
 import type * as members_search_handler from "../members/search/handler.js";
 import type * as migrations_editorial from "../migrations/editorial.js";
 import type * as migrations_members from "../migrations/members.js";
@@ -43,11 +55,14 @@ import type * as tasks_counts_handler from "../tasks/counts/handler.js";
 import type * as tasks_create_handler from "../tasks/create/handler.js";
 import type * as tasks_delete_handler from "../tasks/delete/handler.js";
 import type * as tasks_get_handler from "../tasks/get/handler.js";
-import type * as tasks_getCompleted_handler from "../tasks/getCompleted/handler.js";
 import type * as tasks_getUpcoming_handler from "../tasks/getUpcoming/handler.js";
 import type * as tasks_lib_activity from "../tasks/lib/activity.js";
+import type * as tasks_lib_aggregate from "../tasks/lib/aggregate.js";
+import type * as tasks_lib_capabilities from "../tasks/lib/capabilities.js";
 import type * as tasks_lib_getTask from "../tasks/lib/getTask.js";
 import type * as tasks_lib_ordering from "../tasks/lib/ordering.js";
+import type * as tasks_lib_taskDb from "../tasks/lib/taskDb.js";
+import type * as tasks_lib_transition from "../tasks/lib/transition.js";
 import type * as tasks_lib_validators from "../tasks/lib/validators.js";
 import type * as tasks_list_handler from "../tasks/list/handler.js";
 import type * as tasks_move_handler from "../tasks/move/handler.js";
@@ -84,6 +99,16 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  "comments/create/handler": typeof comments_create_handler;
+  "comments/lib/commentDb": typeof comments_lib_commentDb;
+  "comments/lib/displayNames": typeof comments_lib_displayNames;
+  "comments/lib/subjects": typeof comments_lib_subjects;
+  "comments/lib/validators": typeof comments_lib_validators;
+  "comments/listReplies/handler": typeof comments_listReplies_handler;
+  "comments/listRoots/handler": typeof comments_listRoots_handler;
+  "comments/remove/handler": typeof comments_remove_handler;
+  "comments/summary/handler": typeof comments_summary_handler;
+  "comments/update/handler": typeof comments_update_handler;
   "editorial/cards": typeof editorial_cards;
   "editorial/getCurrent/handler": typeof editorial_getCurrent_handler;
   "editorial/lib/selection": typeof editorial_lib_selection;
@@ -104,6 +129,8 @@ declare const fullApi: ApiFromModules<{
   "lib/customFunctions/workspaceAuthorizedQuery": typeof lib_customFunctions_workspaceAuthorizedQuery;
   "lib/email/resend": typeof lib_email_resend;
   "login/magicLinkCooldown/handler": typeof login_magicLinkCooldown_handler;
+  "members/current/handler": typeof members_current_handler;
+  "members/get/handler": typeof members_get_handler;
   "members/search/handler": typeof members_search_handler;
   "migrations/editorial": typeof migrations_editorial;
   "migrations/members": typeof migrations_members;
@@ -118,11 +145,14 @@ declare const fullApi: ApiFromModules<{
   "tasks/create/handler": typeof tasks_create_handler;
   "tasks/delete/handler": typeof tasks_delete_handler;
   "tasks/get/handler": typeof tasks_get_handler;
-  "tasks/getCompleted/handler": typeof tasks_getCompleted_handler;
   "tasks/getUpcoming/handler": typeof tasks_getUpcoming_handler;
   "tasks/lib/activity": typeof tasks_lib_activity;
+  "tasks/lib/aggregate": typeof tasks_lib_aggregate;
+  "tasks/lib/capabilities": typeof tasks_lib_capabilities;
   "tasks/lib/getTask": typeof tasks_lib_getTask;
   "tasks/lib/ordering": typeof tasks_lib_ordering;
+  "tasks/lib/taskDb": typeof tasks_lib_taskDb;
+  "tasks/lib/transition": typeof tasks_lib_transition;
   "tasks/lib/validators": typeof tasks_lib_validators;
   "tasks/list/handler": typeof tasks_list_handler;
   "tasks/move/handler": typeof tasks_move_handler;
@@ -179,6 +209,7 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
+  taskCounts: import("@convex-dev/aggregate/_generated/component.js").ComponentApi<"taskCounts">;
   betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
   migrations: import("@convex-dev/migrations/_generated/component.js").ComponentApi<"migrations">;
   resend: import("@convex-dev/resend/_generated/component.js").ComponentApi<"resend">;

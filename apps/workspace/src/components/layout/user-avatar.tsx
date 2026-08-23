@@ -1,28 +1,41 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useParams } from "@tanstack/react-router";
+import { useQuery } from "convex/react";
+import { api } from "@pompeii/api";
+
+import { MemberAvatar } from "@/components/shared/member-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurrentUser } from "@/hooks/auth/use-current-user";
-import { avatarInitials } from "@/lib/auth/avatar";
+import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
+import { useWorkspace } from "@/stores/workspace-store";
 
 export function UserAvatar() {
-  const { user, isUserLoading } = useCurrentUser();
+  const { slug } = useParams({ from: "/$slug" });
+  const workspace = useWorkspace(slug);
+  const weddingId =
+    workspace?.status === "active" ? workspace.weddingId : undefined;
+  const member = useQuery(
+    api.members.current.handler.current,
+    weddingId === undefined ? "skip" : { weddingId },
+  );
 
-  if (isUserLoading) {
-    return <Skeleton className="size-10 rounded-full" />;
-  }
-
-  if (user === null) {
+  if (workspace !== undefined && weddingId === undefined) {
     return null;
   }
 
-  const label = user.name.trim() || user.email;
-  const image = user.image ?? undefined;
+  const name = member?.displayName ?? "";
 
   return (
-    <Avatar className="size-10" aria-label={label}>
-      {image ? <AvatarImage alt="" src={image} /> : null}
-      <AvatarFallback className="bg-primary font-serif text-sm text-white">
-        {avatarInitials(user.name, user.email)}
-      </AvatarFallback>
-    </Avatar>
+    <SkeletonReveal
+      className="size-10"
+      ready={member !== undefined}
+      skeleton={<Skeleton className="size-10 rounded-full" />}
+    >
+      {member === null || name.length === 0 ? null : (
+        <MemberAvatar
+          className="size-10"
+          fallbackClassName="text-sm"
+          name={name}
+        />
+      )}
+    </SkeletonReveal>
   );
 }

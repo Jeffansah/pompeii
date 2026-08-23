@@ -1,6 +1,7 @@
 export const tasksErrorCodes = {
   TITLE_REQUIRED: "TASKS_TITLE_REQUIRED",
   TITLE_TOO_LONG: "TASKS_TITLE_TOO_LONG",
+  SEARCH_INVALID: "TASKS_SEARCH_INVALID",
   NOTES_TOO_LONG: "TASKS_NOTES_TOO_LONG",
   CATEGORY_TOO_LONG: "TASKS_CATEGORY_TOO_LONG",
   SUBCATEGORY_TOO_LONG: "TASKS_SUBCATEGORY_TOO_LONG",
@@ -21,6 +22,7 @@ export const tasksErrorCodes = {
 export const tasksErrorMessages = {
   TASKS_TITLE_REQUIRED: "Add a title for the task.",
   TASKS_TITLE_TOO_LONG: "That task title is too long.",
+  TASKS_SEARCH_INVALID: "Use up to 16 short words to search task titles.",
   TASKS_NOTES_TOO_LONG: "Those notes are too long.",
   TASKS_CATEGORY_TOO_LONG: "That category is too long.",
   TASKS_SUBCATEGORY_TOO_LONG: "That subcategory is too long.",
@@ -31,9 +33,11 @@ export const tasksErrorMessages = {
   TASKS_NOT_AUTHORIZED: "You do not have permission to change that task.",
   TASKS_COMPLETED_IMMUTABLE: "Completed tasks cannot be edited or deleted.",
   TASKS_ASSIGNMENT_REQUIRED: "Assign this task before moving it forward.",
-  TASKS_INVALID_STATUS_TRANSITION: "That task status has changed. Refresh and try again.",
+  TASKS_INVALID_STATUS_TRANSITION:
+    "That task status has changed. Refresh and try again.",
   TASKS_DELETE_IN_PROGRESS: "Move this task back to To do before deleting it.",
   TASKS_ALREADY_ASSIGNED: "That task has already been picked up.",
-  TASKS_RELEASE_TODO_REQUIRED: "Move this task back to To do before releasing it.",
+  TASKS_RELEASE_TODO_REQUIRED:
+    "Move this task back to To do before releasing it.",
   TASKS_NOT_ASSIGNED_TO_USER: "Only the assigned person can release this task.",
 } as const;

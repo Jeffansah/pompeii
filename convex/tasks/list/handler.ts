@@ -7,20 +7,17 @@ import { v } from "convex/values";
 import type { Id } from "../../_generated/dataModel";
 import { workspaceAuthorizedQuery } from "../../lib/customFunctions/workspaceAuthorizedQuery";
 import {
-  taskPriorityValidator,
+  taskFilterFields,
   taskSortValidator,
   taskStatusValidator,
   taskValidator,
   toTaskView,
+  validateTaskSearch,
 } from "../lib/validators";
 
 const listArgs = {
   status: taskStatusValidator,
-  priority: v.optional(taskPriorityValidator),
-  category: v.optional(v.string()),
-  assignedTo: v.optional(v.union(v.id("users"), v.null())),
-  dueFrom: v.optional(v.string()),
-  dueTo: v.optional(v.string()),
+  ...taskFilterFields,
   sort: v.optional(taskSortValidator),
   paginationOpts: paginationOptsValidator,
 };
@@ -31,9 +28,10 @@ export const list = workspaceAuthorizedQuery({
   handler: async (ctx, rawArgs) => {
     const args = rawArgs as {
       status: "todo" | "in_progress" | "completed";
+      title?: string;
       priority?: "low" | "normal" | "high" | "urgent";
       category?: string;
-      assignedTo?: Id<"users"> | null;
+      assignedTo?: Id<"users"> | "unassigned";
       dueFrom?: string;
       dueTo?: string;
       sort?:
@@ -53,15 +51,63 @@ export const list = workspaceAuthorizedQuery({
       };
     };
 
+    const title = validateTaskSearch(args.title);
+    const assignedTo =
+      args.assignedTo === "unassigned" ? null : args.assignedTo;
+    const dueFrom = args.dueFrom;
+    const dueTo = args.dueTo;
+    if (title !== undefined) {
+      let searchQuery = ctx.db
+        .query("tasks")
+        .withSearchIndex("search_title_v2", (q) => {
+          let search = q
+            .search("title", title)
+            .eq("weddingId", ctx.workspace._id)
+            .eq("status", args.status)
+            .eq("deletedAt", null);
+          if (args.priority !== undefined) {
+            search = search.eq("priority", args.priority);
+          }
+          if (args.category !== undefined) {
+            search = search.eq("category", args.category);
+          }
+          if (assignedTo !== undefined) {
+            search = search.eq("assignedTo", assignedTo);
+          }
+          return search;
+        });
+      if (dueFrom !== undefined) {
+        searchQuery = searchQuery.filter((q) =>
+          q.gte(q.field("dueDate"), dueFrom),
+        );
+      }
+      if (dueTo !== undefined) {
+        searchQuery = searchQuery.filter((q) =>
+          q.lte(q.field("dueDate"), dueTo),
+        );
+      }
+
+      const page = await searchQuery.paginate(args.paginationOpts);
+      return {
+        ...page,
+        page: await Promise.all(
+          page.page.map((task) => toTaskView(ctx, task, ctx.user._id)),
+        ),
+      };
+    }
+
     const hasDueDateRange =
       args.dueFrom !== undefined || args.dueTo !== undefined;
     const sort = args.sort ?? "default";
     const usesDueDateRangeIndex =
       hasDueDateRange && (sort === "dueDateAsc" || sort === "dueDateDesc");
+    const usesAssigneeCreationIndex =
+      assignedTo !== undefined &&
+      (sort === "default" || sort === "createdAsc" || sort === "createdDesc");
     const taskQuery = usesDueDateRangeIndex
       ? ctx.db
           .query("tasks")
-          .withIndex("by_weddingId_status_deletedAt_dueDate_sortAt", (q) =>
+          .withIndex("by_wedding_status_deleted_due_priority", (q) =>
             q
               .eq("weddingId", ctx.workspace._id)
               .eq("status", args.status)
@@ -69,53 +115,68 @@ export const list = workspaceAuthorizedQuery({
               .gte("dueDate", args.dueFrom ?? "")
               .lte("dueDate", args.dueTo ?? "9999-12-31"),
           )
-      : sort === "default"
+      : usesAssigneeCreationIndex
         ? ctx.db
             .query("tasks")
-            .withIndex("by_wedding_status_deletedAt", (q) =>
-              q
-                .eq("weddingId", ctx.workspace._id)
-                .eq("status", args.status)
-                .eq("deletedAt", null),
+            .withIndex(
+              "by_weddingId_and_status_and_deletedAt_and_assignedTo",
+              (q) =>
+                q
+                  .eq("weddingId", ctx.workspace._id)
+                  .eq("status", args.status)
+                  .eq("deletedAt", null)
+                  .eq("assignedTo", assignedTo),
             )
-        : sort === "dueDateAsc"
+        : sort === "default" || sort === "createdAsc" || sort === "createdDesc"
           ? ctx.db
               .query("tasks")
-              .withIndex("by_wedding_status_deletedAt_dueAsc", (q) =>
+              .withIndex("by_wedding_status_deletedAt", (q) =>
                 q
                   .eq("weddingId", ctx.workspace._id)
                   .eq("status", args.status)
                   .eq("deletedAt", null),
               )
-          : sort === "dueDateDesc"
+          : sort === "dueDateAsc"
             ? ctx.db
                 .query("tasks")
-                .withIndex("by_wedding_status_deletedAt_dueDesc", (q) =>
+                .withIndex("by_wedding_status_deletedAt_dueAsc", (q) =>
                   q
                     .eq("weddingId", ctx.workspace._id)
                     .eq("status", args.status)
                     .eq("deletedAt", null),
                 )
-            : sort === "priority"
+            : sort === "dueDateDesc"
               ? ctx.db
                   .query("tasks")
-                  .withIndex("by_wedding_status_deletedAt_priority", (q) =>
+                  .withIndex("by_wedding_status_deletedAt_dueDesc", (q) =>
                     q
                       .eq("weddingId", ctx.workspace._id)
                       .eq("status", args.status)
                       .eq("deletedAt", null),
                   )
-              : ctx.db
-                  .query("tasks")
-                  .withIndex("by_wedding_status_deletedAt_created", (q) =>
-                    q
-                      .eq("weddingId", ctx.workspace._id)
-                      .eq("status", args.status)
-                      .eq("deletedAt", null),
-                  );
+              : sort === "priority"
+                ? ctx.db
+                    .query("tasks")
+                    .withIndex("by_wedding_status_deletedAt_priority", (q) =>
+                      q
+                        .eq("weddingId", ctx.workspace._id)
+                        .eq("status", args.status)
+                        .eq("deletedAt", null),
+                    )
+                : ctx.db
+                    .query("tasks")
+                    .withIndex("by_wedding_status_deletedAt", (q) =>
+                      q
+                        .eq("weddingId", ctx.workspace._id)
+                        .eq("status", args.status)
+                        .eq("deletedAt", null),
+                    );
 
     let filteredQuery = taskQuery.order(
-      sort === "dueDateDesc" || sort === "createdDesc" ? "desc" : "asc",
+      sort === "createdDesc" ||
+        (sort === "dueDateDesc" && usesDueDateRangeIndex)
+        ? "desc"
+        : "asc",
     );
     if (args.priority !== undefined) {
       filteredQuery = filteredQuery.filter((q) =>
@@ -127,13 +188,11 @@ export const list = workspaceAuthorizedQuery({
         q.eq(q.field("category"), args.category),
       );
     }
-    if (args.assignedTo !== undefined) {
+    if (assignedTo !== undefined && !usesAssigneeCreationIndex) {
       filteredQuery = filteredQuery.filter((q) =>
-        q.eq(q.field("assignedTo"), args.assignedTo),
+        q.eq(q.field("assignedTo"), assignedTo),
       );
     }
-    const dueFrom = args.dueFrom;
-    const dueTo = args.dueTo;
     if (!usesDueDateRangeIndex && dueFrom !== undefined) {
       filteredQuery = filteredQuery.filter((q) =>
         q.gte(q.field("dueDate"), dueFrom),
@@ -148,7 +207,9 @@ export const list = workspaceAuthorizedQuery({
     const page = await filteredQuery.paginate(args.paginationOpts);
     return {
       ...page,
-      page: await Promise.all(page.page.map((task) => toTaskView(ctx, task))),
+      page: await Promise.all(
+        page.page.map((task) => toTaskView(ctx, task, ctx.user._id)),
+      ),
     };
   },
 });

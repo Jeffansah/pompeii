@@ -37,7 +37,7 @@ function isNavActive(
     return pathname === `/${slug}` || pathname === `/${slug}/`;
   }
   const href = to.replace("$slug", slug);
-  return pathname === href || pathname === `${href}/`;
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function WorkspaceNav() {

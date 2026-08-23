@@ -1,4 +1,5 @@
 import { genericErrorCodes, genericErrorMessages } from "./generic";
+import { commentsErrorCodes, commentsErrorMessages } from "./comments";
 import { loginErrorCodes, loginErrorMessages } from "./login";
 import { placesErrorCodes, placesErrorMessages } from "./places";
 import { tasksErrorCodes, tasksErrorMessages } from "./tasks";
@@ -13,6 +14,7 @@ export {
 
 export const AppErrorCode = {
   ...genericErrorCodes,
+  comments: commentsErrorCodes,
   login: loginErrorCodes,
   places: placesErrorCodes,
   tasks: tasksErrorCodes,
@@ -29,6 +31,7 @@ export type AppErrorCode = ErrorCodeLeaves<typeof AppErrorCode>;
 
 export const appErrorMessages = {
   ...genericErrorMessages,
+  ...commentsErrorMessages,
   ...loginErrorMessages,
   ...placesErrorMessages,
   ...tasksErrorMessages,

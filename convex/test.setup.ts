@@ -5,6 +5,7 @@ import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test";
 import { register as registerR2 } from "@convex-dev/r2/test";
 import { register as registerWorkpool } from "@convex-dev/workpool/test";
 import { register as registerInvitations } from "@vllnt/convex-invitations/test";
+import aggregateSchema from "../node_modules/@convex-dev/aggregate/dist/component/schema.js";
 
 import { components, internal } from "./_generated/api";
 import schema from "./schema";
@@ -12,6 +13,9 @@ import schema from "./schema";
 process.env.R2_PUBLIC_URL ??= "https://r2.test";
 
 const modules = import.meta.glob("./**/*.ts");
+const aggregateModules = import.meta.glob(
+  "../node_modules/@convex-dev/aggregate/dist/component/**/*.js",
+);
 
 export function makeConvexTest() {
   const t = convexTest(schema, modules);
@@ -21,6 +25,7 @@ export function makeConvexTest() {
   registerR2(t);
   registerInvitations(t as never);
   registerWorkpool(t);
+  t.registerComponent("taskCounts", aggregateSchema, aggregateModules);
   return t;
 }
 

@@ -3,8 +3,10 @@ import { api } from "@pompeii/api";
 import { useMutation } from "@tanstack/react-query";
 import { useConvex } from "convex/react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { clientErrorMessage } from "@pompeii/errors/client";
 
-import type { Task } from "@/components/wedding/tasks/task-table";
+import type { Task } from "@/types/wedding/task";
 
 export function useTaskStart({ weddingId }: { weddingId: Id<"weddings"> }) {
   const convex = useConvex();
@@ -33,8 +35,11 @@ export function useTaskStart({ weddingId }: { weddingId: Id<"weddings"> }) {
       try {
         await startTask.mutateAsync(taskToStart._id);
         setTaskToStart(null);
-      } catch {
-        setStartError("This task could not be started. Try again.");
+        toast.success("Task started");
+      } catch (error) {
+        const message = clientErrorMessage(error);
+        setStartError(message);
+        toast.error("Task action failed", { description: message });
       }
     },
     dismissStart: () => {

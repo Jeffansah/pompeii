@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Task } from "@/components/wedding/tasks/task-table";
+import type { Task } from "@/types/wedding/task";
 
 export function TaskCompleteDialog({
   task,
@@ -31,13 +31,19 @@ export function TaskCompleteDialog({
             Complete this task?
           </DialogTitle>
           <DialogDescription>
-            "{task?.title}" will leave your upcoming tasks.
+            &ldquo;{task?.title}&rdquo; will leave your upcoming tasks.
           </DialogDescription>
         </DialogHeader>
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {error ? (
+          <p className="text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        ) : null}
         <DialogFooter className="sm:justify-start">
           <DialogClose asChild>
-            <Button variant="secondary">Cancel</Button>
+            <Button disabled={pending} variant="outline">
+              Cancel
+            </Button>
           </DialogClose>
           <Button onClick={onConfirm} pending={pending}>
             Complete task

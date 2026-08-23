@@ -20,7 +20,6 @@ export function WorkspaceHeadlineSkeleton() {
               aria-hidden="true"
               className="inline-block h-[0.72em] w-[12ch] translate-y-[-0.08em] animate-pulse rounded-sm bg-muted align-baseline"
             />
-            .
           </h1>
           <p className="mt-1 max-w-2xl text-muted-foreground">
             A beautiful day is taking shape. Here is what feels most useful

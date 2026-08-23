@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Sorting05Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
@@ -8,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { TextSwap } from "@/components/ui/text-swap";
 
 export type TaskSort =
   | "default"
@@ -46,17 +48,34 @@ const options: Array<{ value: TaskSort; label: string; triggerLabel: string }> =
 export function TaskSort({
   value,
   onChange,
+  searchActive = false,
 }: {
   value?: TaskSort;
   onChange: (value: TaskSort) => void;
+  searchActive?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
   const selected = options.find((option) => option.value === value);
+  const label = searchActive
+    ? "Relevance"
+    : (selected?.triggerLabel ?? "Sort by");
+
   return (
-    <Popover>
+    <Popover
+      onOpenChange={(nextOpen) => {
+        if (!searchActive) {
+          setOpen(nextOpen);
+        }
+      }}
+      open={searchActive ? false : open}
+    >
       <PopoverTrigger asChild>
-        <Button aria-label="Sort tasks" variant="outline">
+        <Button
+          aria-label={searchActive ? "Sort tasks by relevance" : "Sort tasks"}
+          variant="outline"
+        >
           <HugeiconsIcon icon={Sorting05Icon} strokeWidth={1.5} />
-          {selected?.triggerLabel ?? "Sort by"}
+          <TextSwap>{label}</TextSwap>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56 p-2">

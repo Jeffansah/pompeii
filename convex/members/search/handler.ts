@@ -17,7 +17,10 @@ export const memberSearchHitValidator = v.object({
   isSelf: v.boolean(),
 });
 
-function toMemberHit(member: Doc<"weddingMembers">, callerId: Id<"users">) {
+export function toMemberHit(
+  member: Doc<"weddingMembers">,
+  callerId: Id<"users">,
+) {
   return {
     userId: member.userId,
     displayName: member.displayName ?? "",
@@ -63,8 +66,7 @@ export const search = authenticatedQuery({
       .filter((member) => member.userId !== callerId)
       .map((member) => toMemberHit(member, callerId));
     const pinCaller =
-      args.paginationOpts.cursor === null &&
-      (query.length === 0 || hadCaller);
+      args.paginationOpts.cursor === null && (query.length === 0 || hadCaller);
 
     return {
       ...result,

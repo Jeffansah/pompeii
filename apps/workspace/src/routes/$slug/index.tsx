@@ -6,10 +6,14 @@ import { api } from "@pompeii/api";
 import { WorkspacePage } from "@/components/layout/workspace-page";
 import { useCurrentUser } from "@/hooks/auth/use-current-user";
 import { useWorkspace } from "@/stores/workspace-store";
-import { OverviewPosterCard } from "@/components/wedding/overview/overview-poster-card";
+import {
+  OverviewPosterCard,
+  OverviewPosterCardSkeleton,
+} from "@/components/wedding/overview/overview-poster-card";
 import { OverviewPreviewGrid } from "@/components/wedding/overview/overview-preview-grid";
 import { UpcomingEventsSection } from "@/components/wedding/overview/upcoming-events-section";
 import { UpcomingTasksSection } from "@/components/wedding/overview/upcoming-tasks-section";
+import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
 import { WorkspaceHeadline } from "@/components/wedding/overview/workspace-headline";
 import { WorkspaceHeadlineSkeleton } from "@/components/wedding/overview/workspace-headline-skeleton";
 
@@ -58,17 +62,6 @@ function OverviewPage() {
     refetchInterval: 60 * 60 * 1000,
   });
 
-  if (wedding === undefined) {
-    return (
-      <WorkspacePage>
-        <div className="flex flex-col gap-16">
-          <WorkspaceHeadlineSkeleton />
-          <OverviewPosterCard card={undefined} />
-        </div>
-      </WorkspacePage>
-    );
-  }
-
   if (wedding === null) {
     return (
       <WorkspacePage>
@@ -77,27 +70,41 @@ function OverviewPage() {
     );
   }
 
-  if (wedding.status !== "active") {
+  if (wedding !== undefined && wedding.status !== "active") {
     return <Navigate to="/" replace />;
   }
 
+  const ready = wedding !== undefined && wedding.status === "active";
+
   return (
     <WorkspacePage>
-      <div className="flex flex-col gap-16">
-        <WorkspaceHeadline
-          coupleA={wedding.coupleA}
-          coupleB={wedding.coupleB}
-          date={wedding.date}
-        />
-        <OverviewPosterCard
-          card={posterCardQuery.data}
-          error={posterCardQuery.isError}
-        />
-        <OverviewPreviewGrid>
-          <UpcomingTasksSection slug={slug} weddingId={wedding.weddingId} />
-          <UpcomingEventsSection />
-        </OverviewPreviewGrid>
-      </div>
+      <SkeletonReveal
+        ready={ready}
+        skeleton={
+          <div className="flex flex-col gap-16">
+            <WorkspaceHeadlineSkeleton />
+            <OverviewPosterCardSkeleton />
+          </div>
+        }
+      >
+        {wedding?.status === "active" ? (
+          <div className="flex flex-col gap-16">
+            <WorkspaceHeadline
+              coupleA={wedding.coupleA}
+              coupleB={wedding.coupleB}
+              date={wedding.date}
+            />
+            <OverviewPosterCard
+              card={posterCardQuery.data}
+              error={posterCardQuery.isError}
+            />
+            <OverviewPreviewGrid>
+              <UpcomingTasksSection slug={slug} weddingId={wedding.weddingId} />
+              <UpcomingEventsSection />
+            </OverviewPreviewGrid>
+          </div>
+        ) : null}
+      </SkeletonReveal>
     </WorkspacePage>
   );
 }

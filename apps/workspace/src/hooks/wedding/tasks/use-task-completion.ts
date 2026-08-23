@@ -3,8 +3,10 @@ import { api } from "@pompeii/api";
 import { useMutation } from "@tanstack/react-query";
 import { useConvex } from "convex/react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { clientErrorMessage } from "@pompeii/errors/client";
 
-import type { Task } from "@/components/wedding/tasks/task-table";
+import type { Task } from "@/types/wedding/task";
 
 export function useTaskCompletion({
   weddingId,
@@ -64,12 +66,15 @@ export function useTaskCompletion({
       setRetainedTask(completed);
       setCompletingTaskId(undefined);
       setCompletedTaskId(task._id);
+      toast.success("Task completed");
       completionTimerRef.current = window.setTimeout(() => {
         setRetainedTask(null);
         setCompletedTaskId(undefined);
       }, 650);
-    } catch {
-      setCompletionError("This task could not be completed. Try again.");
+    } catch (error) {
+      const message = clientErrorMessage(error);
+      setCompletionError(message);
+      toast.error("Task action failed", { description: message });
       setTaskToComplete(task);
       setCompletingTaskId(undefined);
     } finally {

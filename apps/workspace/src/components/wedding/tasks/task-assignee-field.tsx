@@ -5,13 +5,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { usePaginatedQuery } from "convex/react";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MemberAvatar } from "@/components/shared/member-avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownItem, DropdownList } from "@/components/ui/dropdown-list";
 import { Input } from "@/components/ui/input";
 import { LoaderDots } from "@/components/ui/loader-dots";
 import { useDebouncedValue } from "@/hooks/shared/use-debounced-value";
-import { avatarInitials } from "@/lib/auth/avatar";
 import { cn } from "@/lib/shared/utils";
 
 type MemberHit = {
@@ -29,16 +28,6 @@ const PLACEHOLDER_HIDE_MS = 200;
 
 function memberLabel(member: MemberHit) {
   return member.isSelf ? "Me" : member.displayName;
-}
-
-function MemberAvatar({ name }: { name: string }) {
-  return (
-    <Avatar className="size-6" aria-hidden="true">
-      <AvatarFallback className="bg-primary font-serif text-[10px] text-white">
-        {avatarInitials(name)}
-      </AvatarFallback>
-    </Avatar>
-  );
 }
 
 function PlaceholderReveal({ open }: { open: boolean }) {
@@ -103,11 +92,17 @@ export function TaskAssigneeField({
   value,
   onChange,
   onBlur,
+  allowUnassigned = false,
+  variant = "line",
+  placeholder,
 }: {
   weddingId: Id<"weddings">;
   value: string;
   onChange: (value: string) => void;
   onBlur?: () => void;
+  allowUnassigned?: boolean;
+  variant?: "default" | "line";
+  placeholder?: string;
 }) {
   const listId = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -241,11 +236,20 @@ export function TaskAssigneeField({
     <div ref={wrapRef} className="relative w-full">
       <div className="relative">
         {selected ? (
-          <span className="pointer-events-none absolute top-1/2 left-0 z-10 -translate-y-1/2">
-            <MemberAvatar name={selected.displayName} />
+          <span
+            className={cn(
+              "pointer-events-none absolute top-1/2 z-10 -translate-y-1/2",
+              variant === "line" ? "left-0" : "left-3",
+            )}
+          >
+            <MemberAvatar
+              className="size-6"
+              decorative
+              name={selected.displayName}
+            />
           </span>
         ) : null}
-        {query.length === 0 && !selected ? (
+        {variant === "line" && query.length === 0 && !selected ? (
           <PlaceholderReveal open={open} />
         ) : null}
         <Input
@@ -254,22 +258,36 @@ export function TaskAssigneeField({
           aria-expanded={open}
           aria-label="Assignee"
           autoComplete="off"
-          className={cn("relative z-10", selected && "pl-8", "pr-16")}
+          className={cn(
+            "relative z-10",
+            selected && (variant === "line" ? "pl-8" : "pl-10"),
+            variant === "line" ? "pr-16" : "pr-14",
+          )}
           onChange={(event) => changeQuery(event.target.value)}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder=""
+          placeholder={
+            variant === "line" ? "" : (placeholder ?? PLACEHOLDER_SEARCH)
+          }
           role="combobox"
           value={query}
-          variant="line"
+          variant={variant}
         />
-        <span className="pointer-events-none absolute top-1/2 right-8 -translate-y-1/2">
+        <span
+          className={cn(
+            "pointer-events-none absolute top-1/2 -translate-y-1/2",
+            variant === "line" ? "right-8" : "right-9",
+          )}
+        >
           <LoaderDots open={showSearchDots} />
         </span>
         {selected ? (
           <button
             aria-label="Clear assignee"
-            className="absolute top-1/2 right-0 z-10 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
+            className={cn(
+              "absolute top-1/2 z-10 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground",
+              variant === "line" ? "right-0" : "right-2",
+            )}
             onClick={clear}
             type="button"
           >
@@ -283,6 +301,23 @@ export function TaskAssigneeField({
       </div>
       {open ? (
         <DropdownList className="absolute mt-1" id={listId} role="listbox">
+          {allowUnassigned ? (
+            <li role="none">
+              <DropdownItem
+                aria-selected={value === "unassigned"}
+                onClick={() => {
+                  setSelected(null);
+                  setQuery("");
+                  onChange("unassigned");
+                  setOpen(false);
+                  cachedResults.current = [];
+                }}
+                role="option"
+              >
+                Unassigned
+              </DropdownItem>
+            </li>
+          ) : null}
           {showListDots ? (
             <li className="flex items-center justify-center px-2 py-3">
               <LoaderDots open />
@@ -297,7 +332,11 @@ export function TaskAssigneeField({
                 onMouseEnter={() => setHighlightedIndex(index)}
                 role="option"
               >
-                <MemberAvatar name={member.displayName} />
+                <MemberAvatar
+                  className="size-6"
+                  decorative
+                  name={member.displayName}
+                />
                 {memberLabel(member)}
               </DropdownItem>
             </li>

@@ -5,8 +5,10 @@ import type { Id } from "../../_generated/dataModel";
 import { workspaceAuthorizedMutation } from "../../lib/customFunctions/workspaceAuthorizedMutation";
 import { memberFor } from "../../weddings/lib/members";
 import { recordTaskActivity } from "../lib/activity";
+import { canEditTask } from "../lib/capabilities";
 import { getTaskForWorkspace } from "../lib/getTask";
 import { dueSortAt, dueSortDescAt, priorityRank } from "../lib/ordering";
+import { replaceTask } from "../lib/taskDb";
 import {
   taskUpdateFields,
   taskValidator,
@@ -33,11 +35,11 @@ export const update = workspaceAuthorizedMutation({
       assignedTo?: Id<"users"> | null;
     };
     const task = await getTaskForWorkspace(ctx, args.taskId, ctx.workspace._id);
-    if (task.createdBy !== ctx.user._id) {
-      throwAppError(AppErrorCode.tasks.NOT_AUTHORIZED);
-    }
     if (task.status === "completed") {
       throwAppError(AppErrorCode.tasks.COMPLETED_IMMUTABLE);
+    }
+    if (!canEditTask(task, ctx.user._id)) {
+      throwAppError(AppErrorCode.tasks.NOT_AUTHORIZED);
     }
     const title =
       args.title === undefined
@@ -75,7 +77,7 @@ export const update = workspaceAuthorizedMutation({
       throwAppError(AppErrorCode.tasks.ASSIGNEE_NOT_FOUND);
     }
 
-    await ctx.db.replace(args.taskId, {
+    const updated = await replaceTask(ctx, task, {
       weddingId: task.weddingId,
       title,
       ...(notes !== undefined ? { notes } : {}),
@@ -90,8 +92,6 @@ export const update = workspaceAuthorizedMutation({
       completedAt: task.completedAt,
       completedBy: task.completedBy,
       deletedAt: task.deletedAt,
-      sortAt: dueSortAt(dueDate, args.priority ?? task.priority),
-      createdAt: task.createdAt ?? task._creationTime,
       priorityRank: priorityRank(args.priority ?? task.priority),
       dueSortAsc: dueSortAt(dueDate, args.priority ?? task.priority),
       dueSortDesc: dueSortDescAt(dueDate),
@@ -104,10 +104,6 @@ export const update = workspaceAuthorizedMutation({
       kind: "updated",
     });
 
-    const updated = await ctx.db.get(args.taskId);
-    if (updated === null) {
-      throwAppError(AppErrorCode.INTERNAL);
-    }
-    return toTaskView(ctx, updated);
+    return toTaskView(ctx, updated, ctx.user._id);
   },
 });

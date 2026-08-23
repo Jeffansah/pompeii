@@ -2,6 +2,18 @@ export const TASK_STATUSES = ["todo", "in_progress", "completed"] as const;
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
+export function canTransitionTask(
+  task: { assignedTo: string | null; createdBy: string },
+  currentUserId: string | undefined,
+) {
+  if (currentUserId === undefined) {
+    return false;
+  }
+  return task.assignedTo === null
+    ? task.createdBy === currentUserId
+    : task.assignedTo === currentUserId;
+}
+
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   todo: "To do",
   in_progress: "In progress",

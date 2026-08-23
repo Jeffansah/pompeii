@@ -4,7 +4,9 @@ import { AppErrorCode, throwAppError } from "@pompeii/errors/convex";
 import type { Id } from "../../_generated/dataModel";
 import { workspaceAuthorizedMutation } from "../../lib/customFunctions/workspaceAuthorizedMutation";
 import { recordTaskActivity } from "../lib/activity";
+import { canPickupTask } from "../lib/capabilities";
 import { getTaskForWorkspace } from "../lib/getTask";
+import { patchTask } from "../lib/taskDb";
 import { taskValidator, toTaskView } from "../lib/validators";
 
 export const pickup = workspaceAuthorizedMutation({
@@ -16,10 +18,12 @@ export const pickup = workspaceAuthorizedMutation({
     if (task.status !== "todo") {
       throwAppError(AppErrorCode.tasks.INVALID_STATUS_TRANSITION);
     }
-    if (task.assignedTo !== null) {
+    if (!canPickupTask(task)) {
       throwAppError(AppErrorCode.tasks.ALREADY_ASSIGNED);
     }
-    await ctx.db.patch(taskId, { assignedTo: ctx.user._id });
+    const pickedUp = await patchTask(ctx, task, {
+      assignedTo: ctx.user._id,
+    });
     await recordTaskActivity(ctx, {
       weddingId: task.weddingId,
       taskId,
@@ -29,8 +33,6 @@ export const pickup = workspaceAuthorizedMutation({
       previousValue: "",
       nextValue: ctx.user._id,
     });
-    const pickedUp = await ctx.db.get(taskId);
-    if (pickedUp === null) throwAppError(AppErrorCode.INTERNAL);
-    return toTaskView(ctx, pickedUp);
+    return toTaskView(ctx, pickedUp, ctx.user._id);
   },
 });

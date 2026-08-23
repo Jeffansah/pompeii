@@ -30,7 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TaskAssigneeField } from "./task-assignee-field";
 import { TaskCategoryChips } from "./task-category-chips";
 import { TaskPriorityChips } from "./task-priority-chips";
-import type { Task } from "./task-table";
+import type { Task } from "@/types/wedding/task";
 import {
   taskCreateSchema,
   type TaskCreateSchema,

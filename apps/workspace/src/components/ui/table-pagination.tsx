@@ -1,6 +1,6 @@
-import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
+import { ArrowLeftIcon, ArrowRightIcon } from "@/components/icons/arrow";
 import { Button } from "@/components/ui/button";
 
 export function TablePagination({
@@ -29,7 +29,7 @@ export function TablePagination({
         size="sm"
         variant="outline"
       >
-        <HugeiconsIcon icon={ArrowLeft01Icon} />
+        <HugeiconsIcon icon={ArrowLeftIcon} />
         Back to first
       </Button>
       <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ export function TablePagination({
           size="sm"
           variant="outline"
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} />
+          <HugeiconsIcon icon={ArrowLeftIcon} />
           Previous
         </Button>
         <Button
@@ -52,7 +52,7 @@ export function TablePagination({
           variant="outline"
         >
           Next
-          <HugeiconsIcon icon={ArrowRight01Icon} />
+          <HugeiconsIcon icon={ArrowRightIcon} />
         </Button>
       </div>
     </div>

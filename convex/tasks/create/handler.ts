@@ -4,6 +4,7 @@ import { workspaceAuthorizedMutation } from "../../lib/customFunctions/workspace
 import { memberFor } from "../../weddings/lib/members";
 import { recordTaskActivity } from "../lib/activity";
 import { dueSortAt, dueSortDescAt, priorityRank } from "../lib/ordering";
+import { insertTask } from "../lib/taskDb";
 import {
   taskFields,
   taskValidator,
@@ -48,8 +49,7 @@ export const create = workspaceAuthorizedMutation({
       throwAppError(AppErrorCode.tasks.ASSIGNEE_NOT_FOUND);
     }
 
-    const createdAt = Date.now();
-    const taskId = await ctx.db.insert("tasks", {
+    const task = await insertTask(ctx, {
       weddingId: ctx.workspace._id,
       title,
       ...(notes !== undefined ? { notes } : {}),
@@ -64,8 +64,6 @@ export const create = workspaceAuthorizedMutation({
       completedAt: null,
       completedBy: null,
       deletedAt: null,
-      sortAt: dueSortAt(dueDate, args.priority ?? "normal"),
-      createdAt,
       priorityRank: priorityRank(args.priority ?? "normal"),
       dueSortAsc: dueSortAt(dueDate, args.priority ?? "normal"),
       dueSortDesc: dueSortDescAt(dueDate),
@@ -73,15 +71,11 @@ export const create = workspaceAuthorizedMutation({
 
     await recordTaskActivity(ctx, {
       weddingId: ctx.workspace._id,
-      taskId,
+      taskId: task._id,
       actorId: ctx.user._id,
       kind: "created",
     });
 
-    const task = await ctx.db.get(taskId);
-    if (task === null) {
-      throwAppError(AppErrorCode.INTERNAL);
-    }
-    return toTaskView(ctx, task);
+    return toTaskView(ctx, task, ctx.user._id);
   },
 });
