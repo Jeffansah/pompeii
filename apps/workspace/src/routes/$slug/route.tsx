@@ -1,9 +1,11 @@
 import { Navigate, Outlet, createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
+import { useQuery as useConvexQuery } from "convex/react";
 import { api } from "@pompeii/api";
+import { useEffect } from "react";
 
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
 import { useCurrentUser } from "@/hooks/auth/use-current-user";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 
 export const Route = createFileRoute("/$slug")({
   component: WeddingWorkspaceLayout,
@@ -12,37 +14,22 @@ export const Route = createFileRoute("/$slug")({
 function WeddingWorkspaceLayout() {
   const { slug } = Route.useParams();
   const { isAuthenticated, isLoading } = useCurrentUser();
-  const wedding = useQuery(
+  const workspace = useConvexQuery(
     api.weddings.getBySlug.handler.getBySlug,
     isAuthenticated ? { slug } : "skip",
   );
+  const setWorkspace = useWorkspaceStore((state) => state.setWorkspace);
 
-  if (isLoading) {
-    return <div className="min-h-dvh bg-background" />;
-  }
+  useEffect(() => {
+    setWorkspace(slug, workspace);
+  }, [setWorkspace, slug, workspace]);
 
-  if (!isAuthenticated) {
+  if (!isLoading && !isAuthenticated) {
     return <Navigate to="/auth/login" replace />;
   }
 
-  if (wedding === undefined) {
-    return <div className="min-h-dvh bg-background" />;
-  }
-
-  if (wedding === null) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-background">
-        <p className="text-muted-foreground">Not found</p>
-      </div>
-    );
-  }
-
-  if (wedding.status === "inactive") {
-    return <Navigate to="/" replace />;
-  }
-
   return (
-    <WorkspaceShell slug={slug}>
+    <WorkspaceShell>
       <Outlet />
     </WorkspaceShell>
   );

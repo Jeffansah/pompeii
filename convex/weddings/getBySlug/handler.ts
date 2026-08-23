@@ -2,13 +2,21 @@ import { v } from "convex/values";
 
 import { authenticatedQuery } from "../../lib/customFunctions/authenticatedQuery";
 import { memberFor } from "../lib/members";
-import { sessionPointsAtWedding } from "../lib/workspaceSession";
+import { workspaceSessionFor } from "../lib/workspaceSession";
 
 export const getBySlug = authenticatedQuery({
   args: { slug: v.string() },
   returns: v.union(
     v.null(),
-    v.object({ status: v.literal("active"), name: v.string() }),
+    v.object({
+      status: v.literal("active"),
+      weddingId: v.id("weddings"),
+      workspaceSessionId: v.id("workspaceSessions"),
+      name: v.string(),
+      coupleA: v.string(),
+      coupleB: v.string(),
+      date: v.optional(v.string()),
+    }),
     v.object({ status: v.literal("inactive") }),
   ),
   handler: async (ctx, args) => {
@@ -25,15 +33,22 @@ export const getBySlug = authenticatedQuery({
       return null;
     }
 
-    const isActive = await sessionPointsAtWedding(
-      ctx,
-      ctx.sessionId,
-      wedding._id,
-    );
-    if (!isActive) {
+    const workspaceSession = await workspaceSessionFor(ctx, ctx.sessionId);
+    if (
+      workspaceSession === null ||
+      workspaceSession.weddingId !== wedding._id
+    ) {
       return { status: "inactive" as const };
     }
 
-    return { status: "active" as const, name: wedding.name };
+    return {
+      status: "active" as const,
+      weddingId: wedding._id,
+      workspaceSessionId: workspaceSession._id,
+      name: wedding.name,
+      coupleA: wedding.couple[0]?.name ?? "",
+      coupleB: wedding.couple[1]?.name ?? "",
+      ...(wedding.date !== undefined ? { date: wedding.date } : {}),
+    };
   },
 });

@@ -35,3 +35,21 @@ export const getDraft = authenticatedQuery({
 ## Check the shelf first
 
 Before a new Convex helper, table, or pattern, pause and check: `convex-helpers`, installed `@convex-dev/*` components, Better Auth (`safeGetAuthUser` / `getAuthUser`), and other libs already in the repo. Do not hand-roll something they already solve. If it is a new capability, discuss before installing.
+
+## Parallel database operations
+
+When a `for` loop performs independent database operations, create the promises and await them with `Promise.all` instead of awaiting each operation serially. This reduces wall-clock latency for independent reads and writes.
+
+```ts
+// BAD
+for (const card of cards) {
+  await ctx.db.patch(card._id, { active: true });
+}
+
+// GOOD
+await Promise.all(
+  cards.map((card) => ctx.db.patch(card._id, { active: true })),
+);
+```
+
+Keep sequential `await`s when an operation depends on the previous result, ordering is meaningful, or parallel writes could create conflicts.

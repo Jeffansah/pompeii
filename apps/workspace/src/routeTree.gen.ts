@@ -14,6 +14,11 @@ import { Route as SlugRouteRouteImport } from './routes/$slug/route'
 import { Route as AuthRouteRouteImport } from './routes/auth/route'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as SlugIndexRouteImport } from './routes/$slug/index'
+import { Route as SlugBudgetRouteImport } from './routes/$slug/budget'
+import { Route as SlugEventsRouteImport } from './routes/$slug/events'
+import { Route as SlugGuestsRouteImport } from './routes/$slug/guests'
+import { Route as SlugTasksRouteImport } from './routes/$slug/tasks'
+import { Route as SlugVendorsRouteImport } from './routes/$slug/vendors'
 import { Route as AuthIndexRouteImport } from './routes/auth/index'
 import { Route as AuthGetStartedRouteImport } from './routes/auth/get-started'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
@@ -44,6 +49,31 @@ const SlugIndexRoute = SlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SlugRouteRoute,
 } as any)
+const SlugBudgetRoute = SlugBudgetRouteImport.update({
+  id: '/budget',
+  path: '/budget',
+  getParentRoute: () => SlugRouteRoute,
+} as any)
+const SlugEventsRoute = SlugEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => SlugRouteRoute,
+} as any)
+const SlugGuestsRoute = SlugGuestsRouteImport.update({
+  id: '/guests',
+  path: '/guests',
+  getParentRoute: () => SlugRouteRoute,
+} as any)
+const SlugTasksRoute = SlugTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => SlugRouteRoute,
+} as any)
+const SlugVendorsRoute = SlugVendorsRouteImport.update({
+  id: '/vendors',
+  path: '/vendors',
+  getParentRoute: () => SlugRouteRoute,
+} as any)
 const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -70,6 +100,11 @@ export interface FileRoutesByFullPath {
   '/$slug': typeof SlugRouteRouteWithChildren
   '/auth': typeof AuthRouteRouteWithChildren
   '/new': typeof NewRoute
+  '/$slug/budget': typeof SlugBudgetRoute
+  '/$slug/events': typeof SlugEventsRoute
+  '/$slug/guests': typeof SlugGuestsRoute
+  '/$slug/tasks': typeof SlugTasksRoute
+  '/$slug/vendors': typeof SlugVendorsRoute
   '/auth/get-started': typeof AuthGetStartedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/resend-link': typeof AuthResendLinkRoute
@@ -79,6 +114,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/new': typeof NewRoute
+  '/$slug/budget': typeof SlugBudgetRoute
+  '/$slug/events': typeof SlugEventsRoute
+  '/$slug/guests': typeof SlugGuestsRoute
+  '/$slug/tasks': typeof SlugTasksRoute
+  '/$slug/vendors': typeof SlugVendorsRoute
   '/auth/get-started': typeof AuthGetStartedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/resend-link': typeof AuthResendLinkRoute
@@ -91,6 +131,11 @@ export interface FileRoutesById {
   '/$slug': typeof SlugRouteRouteWithChildren
   '/auth': typeof AuthRouteRouteWithChildren
   '/new': typeof NewRoute
+  '/$slug/budget': typeof SlugBudgetRoute
+  '/$slug/events': typeof SlugEventsRoute
+  '/$slug/guests': typeof SlugGuestsRoute
+  '/$slug/tasks': typeof SlugTasksRoute
+  '/$slug/vendors': typeof SlugVendorsRoute
   '/auth/get-started': typeof AuthGetStartedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/resend-link': typeof AuthResendLinkRoute
@@ -104,6 +149,11 @@ export interface FileRouteTypes {
     | '/$slug'
     | '/auth'
     | '/new'
+    | '/$slug/budget'
+    | '/$slug/events'
+    | '/$slug/guests'
+    | '/$slug/tasks'
+    | '/$slug/vendors'
     | '/auth/get-started'
     | '/auth/login'
     | '/auth/resend-link'
@@ -113,6 +163,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/new'
+    | '/$slug/budget'
+    | '/$slug/events'
+    | '/$slug/guests'
+    | '/$slug/tasks'
+    | '/$slug/vendors'
     | '/auth/get-started'
     | '/auth/login'
     | '/auth/resend-link'
@@ -124,6 +179,11 @@ export interface FileRouteTypes {
     | '/$slug'
     | '/auth'
     | '/new'
+    | '/$slug/budget'
+    | '/$slug/events'
+    | '/$slug/guests'
+    | '/$slug/tasks'
+    | '/$slug/vendors'
     | '/auth/get-started'
     | '/auth/login'
     | '/auth/resend-link'
@@ -175,6 +235,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugIndexRouteImport
       parentRoute: typeof SlugRouteRoute
     }
+    '/$slug/budget': {
+      id: '/$slug/budget'
+      path: '/budget'
+      fullPath: '/$slug/budget'
+      preLoaderRoute: typeof SlugBudgetRouteImport
+      parentRoute: typeof SlugRouteRoute
+    }
+    '/$slug/events': {
+      id: '/$slug/events'
+      path: '/events'
+      fullPath: '/$slug/events'
+      preLoaderRoute: typeof SlugEventsRouteImport
+      parentRoute: typeof SlugRouteRoute
+    }
+    '/$slug/guests': {
+      id: '/$slug/guests'
+      path: '/guests'
+      fullPath: '/$slug/guests'
+      preLoaderRoute: typeof SlugGuestsRouteImport
+      parentRoute: typeof SlugRouteRoute
+    }
+    '/$slug/tasks': {
+      id: '/$slug/tasks'
+      path: '/tasks'
+      fullPath: '/$slug/tasks'
+      preLoaderRoute: typeof SlugTasksRouteImport
+      parentRoute: typeof SlugRouteRoute
+    }
+    '/$slug/vendors': {
+      id: '/$slug/vendors'
+      path: '/vendors'
+      fullPath: '/$slug/vendors'
+      preLoaderRoute: typeof SlugVendorsRouteImport
+      parentRoute: typeof SlugRouteRoute
+    }
     '/auth/': {
       id: '/auth/'
       path: '/'
@@ -207,10 +302,20 @@ declare module '@tanstack/react-router' {
 }
 
 interface SlugRouteRouteChildren {
+  SlugBudgetRoute: typeof SlugBudgetRoute
+  SlugEventsRoute: typeof SlugEventsRoute
+  SlugGuestsRoute: typeof SlugGuestsRoute
+  SlugTasksRoute: typeof SlugTasksRoute
+  SlugVendorsRoute: typeof SlugVendorsRoute
   SlugIndexRoute: typeof SlugIndexRoute
 }
 
 const SlugRouteRouteChildren: SlugRouteRouteChildren = {
+  SlugBudgetRoute: SlugBudgetRoute,
+  SlugEventsRoute: SlugEventsRoute,
+  SlugGuestsRoute: SlugGuestsRoute,
+  SlugTasksRoute: SlugTasksRoute,
+  SlugVendorsRoute: SlugVendorsRoute,
   SlugIndexRoute: SlugIndexRoute,
 }
 

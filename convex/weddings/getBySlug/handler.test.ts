@@ -36,16 +36,26 @@ describe("weddings/getBySlug", () => {
     );
   });
 
-  it("returns the name for a couple member", async () => {
+  it("returns the couple names for a couple member", async () => {
     const t = makeConvexTest();
     const asOwner = await signIn(t, "owner@example.com");
     await createOwnedWedding(asOwner);
 
-    await expect(
-      asOwner.query(api.weddings.getBySlug.handler.getBySlug, {
+    const result = await asOwner.query(
+      api.weddings.getBySlug.handler.getBySlug,
+      {
         slug: "amara-tomi",
-      }),
-    ).resolves.toEqual({ status: "active", name: "Amara & Tomi" });
+      },
+    );
+    expect(result).toMatchObject({
+      status: "active",
+      weddingId: expect.any(String),
+      workspaceSessionId: expect.any(String),
+      name: "Amara & Tomi",
+      coupleA: "Amara",
+      coupleB: "Tomi",
+    });
+    expect(result).not.toHaveProperty("date");
   });
 
   it("returns inactive when this session has no workspace pointer", async () => {
@@ -59,6 +69,41 @@ describe("weddings/getBySlug", () => {
         slug: "amara-tomi",
       }),
     ).resolves.toEqual({ status: "inactive" });
+  });
+
+  it("returns the wedding date when one is set", async () => {
+    const t = makeConvexTest();
+    const asOwner = await signIn(t, "owner@example.com");
+    await asOwner.mutation(api.weddings.saveDraft.handler.saveDraft, {
+      step: 1,
+      name: "Amara & Tomi",
+    });
+    await asOwner.mutation(api.weddings.saveDraft.handler.saveDraft, {
+      step: 2,
+      coupleA: "Amara",
+      coupleB: "Tomi",
+    });
+    await asOwner.mutation(api.weddings.saveDraft.handler.saveDraft, {
+      step: 3,
+      date: "2026-12-24",
+    });
+    await asOwner.mutation(api.weddings.create.handler.create, {});
+
+    const result = await asOwner.query(
+      api.weddings.getBySlug.handler.getBySlug,
+      {
+        slug: "amara-tomi",
+      },
+    );
+    expect(result).toMatchObject({
+      status: "active",
+      weddingId: expect.any(String),
+      workspaceSessionId: expect.any(String),
+      name: "Amara & Tomi",
+      coupleA: "Amara",
+      coupleB: "Tomi",
+      date: "2026-12-24",
+    });
   });
 
   it("returns null for a missing slug", async () => {

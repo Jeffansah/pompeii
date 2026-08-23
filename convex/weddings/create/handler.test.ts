@@ -131,6 +131,7 @@ describe("weddings/create", () => {
       expect(members).toHaveLength(1);
       expect(members[0]?.userId).toBe(wedding.couple[0]?.id);
       expect(members[0]?.role).toBe("couple");
+      expect(members[0]?.displayName).toBe("Amara");
     });
 
     await expect(

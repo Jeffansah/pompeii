@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "@/hooks/auth/use-current-user";
-import { avatarInitial, avatarToneVar } from "@/lib/auth/avatar";
+import { avatarInitials } from "@/lib/auth/avatar";
 
 export function UserAvatar() {
   const { user, isUserLoading } = useCurrentUser();
@@ -20,11 +20,8 @@ export function UserAvatar() {
   return (
     <Avatar className="size-10" aria-label={label}>
       {image ? <AvatarImage alt="" src={image} /> : null}
-      <AvatarFallback
-        className="text-sm font-medium text-foreground"
-        style={{ backgroundColor: avatarToneVar(user._id) }}
-      >
-        {avatarInitial(user.name, user.email)}
+      <AvatarFallback className="bg-primary font-serif text-sm text-white">
+        {avatarInitials(user.name, user.email)}
       </AvatarFallback>
     </Avatar>
   );

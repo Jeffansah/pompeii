@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { UserAvatar } from "@/components/layout/user-avatar";
-import { WorkspaceHeadline } from "@/components/layout/workspace-headline";
+import { WorkspaceHeader } from "@/components/layout/workspace-header";
+import { WorkspaceNav } from "@/components/layout/workspace-nav";
 import {
   Sidebar,
   SidebarHeader,
@@ -10,25 +10,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-export function WorkspaceShell({
-  slug,
-  children,
-}: {
-  slug: string;
-  children?: ReactNode;
-}) {
+export function WorkspaceShell({ children }: { children?: ReactNode }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-svh overflow-hidden">
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
                 size="lg"
-                className="h-auto pointer-events-none p-0 text-3xl hover:bg-transparent group-data-[collapsible=icon]:size-auto! group-data-[collapsible=icon]:p-0!"
+                className="h-auto pointer-events-none p-0 font-serif text-3xl hover:bg-transparent group-data-[collapsible=icon]:size-auto! group-data-[collapsible=icon]:p-0!"
               >
                 <span className="hidden group-data-[collapsible=icon]:block">
                   P
@@ -40,16 +33,12 @@ export function WorkspaceShell({
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
+        <WorkspaceNav />
       </Sidebar>
-      <SidebarInset className="gap-6 p-4">
-        <header className="flex h-12 shrink-0 items-center justify-between">
-          <SidebarTrigger />
-          <UserAvatar />
-        </header>
-        <WorkspaceHeadline slug={slug} />
+      <SidebarInset className="min-h-0 overflow-y-auto">
+        <WorkspaceHeader />
         {children}
       </SidebarInset>
     </SidebarProvider>
   );
 }
-

@@ -1,18 +1,24 @@
 import { convexTest } from "convex-test";
 import { register as registerBetterAuth } from "@convex-dev/better-auth/test";
+import { register as registerMigrations } from "@convex-dev/migrations/test";
 import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test";
+import { register as registerR2 } from "@convex-dev/r2/test";
 import { register as registerWorkpool } from "@convex-dev/workpool/test";
 import { register as registerInvitations } from "@vllnt/convex-invitations/test";
 
 import { components, internal } from "./_generated/api";
 import schema from "./schema";
 
+process.env.R2_PUBLIC_URL ??= "https://r2.test";
+
 const modules = import.meta.glob("./**/*.ts");
 
 export function makeConvexTest() {
   const t = convexTest(schema, modules);
   registerBetterAuth(t);
+  registerMigrations(t);
   registerRateLimiter(t);
+  registerR2(t);
   registerInvitations(t as never);
   registerWorkpool(t);
   return t;

@@ -52,7 +52,7 @@ function ResendLinkPage() {
       className="t-stagger flex w-full flex-col gap-8 text-left"
     >
       <div className="flex flex-col gap-2">
-        <h1 className="t-stagger-line t-stagger-line--1 text-4xl sm:text-5xl">
+        <h1 className="t-stagger-line t-stagger-line--1 font-serif text-4xl sm:text-5xl">
           Check your email
         </h1>
         <p className="t-stagger-line t-stagger-line--2 text-muted-foreground">

@@ -1,6 +1,7 @@
 import { genericErrorCodes, genericErrorMessages } from "./generic";
 import { loginErrorCodes, loginErrorMessages } from "./login";
 import { placesErrorCodes, placesErrorMessages } from "./places";
+import { tasksErrorCodes, tasksErrorMessages } from "./tasks";
 import { weddingsErrorCodes, weddingsErrorMessages } from "./weddings";
 
 export {
@@ -14,6 +15,7 @@ export const AppErrorCode = {
   ...genericErrorCodes,
   login: loginErrorCodes,
   places: placesErrorCodes,
+  tasks: tasksErrorCodes,
   weddings: weddingsErrorCodes,
 } as const;
 
@@ -29,6 +31,7 @@ export const appErrorMessages = {
   ...genericErrorMessages,
   ...loginErrorMessages,
   ...placesErrorMessages,
+  ...tasksErrorMessages,
   ...weddingsErrorMessages,
 } as const satisfies Record<AppErrorCode, string>;
 

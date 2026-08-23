@@ -1,21 +1,12 @@
-export const AVATAR_TONE_COUNT = 20;
-
-export function avatarToneIndex(id: string) {
-  let hash = 0;
-  for (const char of id) {
-    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+export function avatarInitials(name?: string | null, email?: string | null) {
+  const words = name?.trim().split(/\s+/).filter((word) => word.length > 0) ?? [];
+  const first = words[0]?.charAt(0);
+  const last = words.at(-1)?.charAt(0);
+  if (first && last && words.length > 1) {
+    return `${first}${last}`.toUpperCase();
   }
-  return (hash % AVATAR_TONE_COUNT) + 1;
-}
-
-export function avatarToneVar(id: string) {
-  return `var(--avatar-${avatarToneIndex(id)})`;
-}
-
-export function avatarInitial(name?: string | null, email?: string | null) {
-  const fromName = name?.trim().charAt(0);
-  if (fromName) {
-    return fromName.toUpperCase();
+  if (first) {
+    return first.toUpperCase();
   }
   const fromEmail = email?.trim().charAt(0);
   if (fromEmail) {

@@ -44,7 +44,7 @@ export function StepLayout({
             {step} of {CREATE_WEDDING_STEP_COUNT}
           </p>
         ) : null}
-        <h1 className="t-stagger-line t-stagger-line--1 text-4xl sm:text-5xl">
+        <h1 className="t-stagger-line t-stagger-line--1 font-serif text-4xl sm:text-5xl">
           {title}
         </h1>
         {subtitle ? (

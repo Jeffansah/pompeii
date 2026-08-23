@@ -7,7 +7,7 @@ import { api } from "@pompeii/api";
 import { clientErrorMessage } from "@pompeii/errors/client";
 
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/shared/utils";
+import { DropdownItem, DropdownList } from "@/components/ui/dropdown-list";
 import { usePlaceAutocomplete } from "@/hooks/wedding/create/use-place-autocomplete";
 import type { WhereSchema } from "@/schemas/wedding/create/where-schema";
 
@@ -159,7 +159,7 @@ export function PlaceSearchField({
       <div className="relative">
         <HugeiconsIcon
           icon={Search01Icon}
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground"
           strokeWidth={1.5}
         />
         <Input
@@ -178,23 +178,19 @@ export function PlaceSearchField({
         />
       </div>
       {showList ? (
-        <ul
+        <DropdownList
+          className="absolute mt-1 rounded-md"
           id={listId}
           role="listbox"
-          className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
         >
           {suggestions.map((suggestion, index) => (
             <li key={suggestion.placeId} role="none">
-              <button
-                type="button"
-                role="option"
+              <DropdownItem
                 aria-selected={index === highlightedIndex}
-                className={cn(
-                  "flex w-full flex-col items-start rounded-sm px-2 py-2 text-left text-sm",
-                  index === highlightedIndex && "bg-accent",
-                )}
-                onMouseEnter={() => setHighlightedIndex(index)}
+                className="flex-col items-start rounded-sm"
                 onClick={() => void selectSuggestion(suggestion.placeId)}
+                onMouseEnter={() => setHighlightedIndex(index)}
+                role="option"
               >
                 <span>{suggestion.mainText || suggestion.label}</span>
                 {suggestion.secondaryText ? (
@@ -202,7 +198,7 @@ export function PlaceSearchField({
                     {suggestion.secondaryText}
                   </span>
                 ) : null}
-              </button>
+              </DropdownItem>
             </li>
           ))}
           {listStatus() ? (
@@ -210,7 +206,7 @@ export function PlaceSearchField({
               {listStatus()}
             </li>
           ) : null}
-        </ul>
+        </DropdownList>
       ) : null}
       {searchError ? (
         <p className="t-error-msg text-sm text-destructive">{searchError}</p>

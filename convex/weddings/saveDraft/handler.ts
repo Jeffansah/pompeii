@@ -22,9 +22,9 @@ export const saveDraft = authenticatedMutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, { ...patch, step });
-      for (const extra of drafts.slice(1)) {
-        await ctx.db.delete(extra._id);
-      }
+      await Promise.all(
+        drafts.slice(1).map((extra) => ctx.db.delete(extra._id)),
+      );
       const next = await ctx.db.get(existing._id);
       if (next === null) {
         throwAppError(AppErrorCode.INTERNAL);

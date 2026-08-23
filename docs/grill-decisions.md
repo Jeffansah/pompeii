@@ -378,7 +378,8 @@ Open items stay as question markers. We do not invent architecture in this file.
 **Accepted** (direction, not a spec)
 
 - `/` — signed in, no current wedding on this session: picker (list + create). Signed out: get-started.
-- `/{slug}` — this wedding’s workspace (logged in). Further paths under it as we add features.
+- `/{slug}` — Overview. Logged in. Further paths under it as we add features.
+- `/{slug}/tasks`, `/{slug}/vendors`, `/{slug}/events`, `/{slug}/budget`, `/{slug}/guests` — workspace sections. Empty until those features land.
 - `/{slug}/site` — public wedding page. Anyone with the URL.
 - Reserved first segments (not a wedding): at least `/new` (or `/create`), `/auth`, and `/weddings`.
 - RSVP, vendor, and other trees hang off the slug; exact paths when those features exist.
@@ -455,13 +456,20 @@ Open items stay as question markers. We do not invent architecture in this file.
 ### Q45 — Workspace headline
 **Accepted** (direction, not a spec)
 
-- Slot under the inset header: a foretitle and a title. Workspace chrome, not a page.
-- Automatic. The couple never sets a headline. Facts in, copy out.
-- No stored copy, no stage column, no headline mutation.
-- `kind` is the voice (`welcome`, later `dayOf` / `after`), not the event id. An event can win the slot later. It does not write the headline.
-- Convex queries do not read `Date.now()`. Pass `now` from the client when a moment needs the clock.
-- Same-day events need a picker later (ceremony beats a shower). Until then, welcome only: `Welcome to` / wedding name.
-- Copy catalog lives in server code. The query is access plus load.
+- Slot under the inset header. Overview chrome, not a page.
+- Title is a local time-of-day greeting (`Good morning` / `Good afternoon` / `Good evening`), then the two couple names in italic Playfair, joined with `&`. Not the wedding name.
+- Subtext under the title: `A beautiful day is taking shape. Here is what feels most useful right now.`
+- Right of the title and subtext, baseline aligned, `justify-between`, full width: calendar days to go as an `h2`, then `days to go` (singular `day to go` for 1). Only if the wedding has a date.
+
+### Q46 — Task status actions
+**Accepted** (direction, not a spec)
+
+- Keep the compact circle action on task rows.
+- On a `todo` task, it opens a Begin task confirmation and moves the task to `in_progress`.
+- On an `in_progress` task, it opens the Complete task confirmation.
+- Completed tasks do not show the circle action.
+- Tooltips identify the next action as `Begin task` or `Complete task`.
+- Edit and Delete belong in the future Actions menu.
 
 ---
 

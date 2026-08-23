@@ -2,12 +2,13 @@ import * as React from "react";
 import {
   CircleArrowLeft01Icon,
   CircleArrowRight01Icon,
+  Menu02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Slot } from "radix-ui";
+import { useRender } from "@base-ui/react/use-render";
 
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/shared/use-mobile";
 import { cn } from "@/lib/shared/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,11 +28,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+function Slot({
+  children,
+  ...props
+}: { children?: React.ReactNode; [key: string]: unknown }) {
+  return useRender({
+    render: React.isValidElement(children) ? children : undefined,
+    props,
+  });
+}
+
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
-const SIDEBAR_WIDTH_ICON = "3rem";
+const SIDEBAR_WIDTH_ICON = "calc(var(--spacing) * 16 + 1px)";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 type SidebarContextProps = {
@@ -269,7 +280,7 @@ function SidebarTrigger({
       variant="ghost"
       size="icon"
       className={cn(
-        "size-9 hover:bg-transparent dark:hover:bg-transparent",
+        "size-8 hover:bg-transparent dark:hover:bg-transparent",
         className,
       )}
       onClick={(event) => {
@@ -278,22 +289,26 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <span className="t-icon-swap" data-state={isCollapsed ? "b" : "a"}>
-        <span className="t-icon" data-icon="a">
-          <HugeiconsIcon
-            icon={CircleArrowLeft01Icon}
-            className="size-6"
-            strokeWidth={1.5}
-          />
+      {isMobile ? (
+        <HugeiconsIcon icon={Menu02Icon} className="size-8" strokeWidth={1.5} />
+      ) : (
+        <span className="t-icon-swap" data-state={isCollapsed ? "b" : "a"}>
+          <span className="t-icon" data-icon="a">
+            <HugeiconsIcon
+              icon={CircleArrowLeft01Icon}
+              className="size-5"
+              strokeWidth={1.5}
+            />
+          </span>
+          <span className="t-icon" data-icon="b">
+            <HugeiconsIcon
+              icon={CircleArrowRight01Icon}
+              className="size-5"
+              strokeWidth={1.5}
+            />
+          </span>
         </span>
-        <span className="t-icon" data-icon="b">
-          <HugeiconsIcon
-            icon={CircleArrowRight01Icon}
-            className="size-6"
-            strokeWidth={1.5}
-          />
-        </span>
-      </span>
+      )}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
@@ -418,7 +433,7 @@ function SidebarGroupLabel({
   asChild = false,
   ...props
 }: React.ComponentProps<"div"> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : "div";
+  const Comp = asChild ? Slot : "div";
 
   return (
     <Comp
@@ -439,7 +454,7 @@ function SidebarGroupAction({
   asChild = false,
   ...props
 }: React.ComponentProps<"button"> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : "button";
+  const Comp = asChild ? Slot : "button";
 
   return (
     <Comp
@@ -528,7 +543,7 @@ function SidebarMenuButton({
   isActive?: boolean;
   tooltip?: string | React.ComponentProps<typeof TooltipContent>;
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
-  const Comp = asChild ? Slot.Root : "button";
+  const Comp = asChild ? Slot : "button";
   const { isMobile, state } = useSidebar();
 
   const button = (
@@ -574,7 +589,7 @@ function SidebarMenuAction({
   asChild?: boolean;
   showOnHover?: boolean;
 }) {
-  const Comp = asChild ? Slot.Root : "button";
+  const Comp = asChild ? Slot : "button";
 
   return (
     <Comp
@@ -697,7 +712,7 @@ function SidebarMenuSubButton({
   size?: "sm" | "md";
   isActive?: boolean;
 }) {
-  const Comp = asChild ? Slot.Root : "a";
+  const Comp = asChild ? Slot : "a";
 
   return (
     <Comp

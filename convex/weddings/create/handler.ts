@@ -54,12 +54,10 @@ export const create = authenticatedMutation({
       inviteEmail: draft.inviteEmail,
     });
 
-    await addCoupleMember(ctx, ctx.user._id, weddingId);
+    await addCoupleMember(ctx, ctx.user._id, weddingId, coupleA);
     await setWorkspaceSession(ctx, ctx.sessionId, weddingId);
 
-    for (const row of drafts) {
-      await ctx.db.delete(row._id);
-    }
+    await Promise.all(drafts.map((row) => ctx.db.delete(row._id)));
     return { slug };
   },
 });

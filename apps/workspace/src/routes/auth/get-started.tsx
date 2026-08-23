@@ -29,7 +29,7 @@ function GetStartedPage() {
       ref={staggerRef}
       className="t-stagger flex flex-col items-center gap-6 text-center"
     >
-      <h1 className="t-stagger-line t-stagger-line--1 text-4xl sm:text-5xl">
+      <h1 className="t-stagger-line t-stagger-line--1 font-serif text-4xl sm:text-5xl">
         Welcome to <Squiggle>Pompeii</Squiggle>
       </h1>
       <p className="t-stagger-line t-stagger-line--2 max-w-md text-muted-foreground">

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Dialog as DialogPrimitive } from "radix-ui";
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/shared/utils";
@@ -41,15 +41,19 @@ function Dialog({
   const [isEntered, setIsEntered] = React.useState(false);
   const closeTimerRef = React.useRef<number>(undefined);
 
-  const setOpen = (nextOpen: boolean) => {
+  const setOpen: NonNullable<
+    React.ComponentProps<typeof DialogPrimitive.Root>["onOpenChange"]
+  > = (nextOpen, eventDetails) => {
     if (!isControlled) {
       setUncontrolledOpen(nextOpen);
     }
-    onOpenChange?.(nextOpen);
+    onOpenChange?.(nextOpen, eventDetails);
   };
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
+  const handleOpenChange: NonNullable<
+    React.ComponentProps<typeof DialogPrimitive.Root>["onOpenChange"]
+  > = (nextOpen, eventDetails) => {
+    setOpen(nextOpen, eventDetails);
   };
 
   React.useLayoutEffect(() => {
@@ -117,19 +121,31 @@ function DialogPortal({
 }
 
 function DialogClose({
+  asChild = false,
+  children,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Close>) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
+}: React.ComponentProps<typeof DialogPrimitive.Close> & {
+  asChild?: boolean;
+}) {
+  return (
+    <DialogPrimitive.Close
+      data-slot="dialog-close"
+      render={asChild && React.isValidElement(children) ? children : undefined}
+      {...props}
+    >
+      {asChild ? null : children}
+    </DialogPrimitive.Close>
+  );
 }
 
 function DialogOverlay({
   className,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+}: React.ComponentProps<typeof DialogPrimitive.Backdrop>) {
   const { isEntered, isClosing } = React.useContext(DialogMotionContext);
 
   return (
-    <DialogPrimitive.Overlay
+    <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
         "t-modal-overlay fixed inset-0 z-50 bg-black/50",
@@ -142,73 +158,46 @@ function DialogOverlay({
   );
 }
 
-function isInsideSelect(target: EventTarget | null) {
-  return (
-    target instanceof Element &&
-    Boolean(target.closest("[data-slot='select-content']"))
-  );
-}
-
 function DialogContent({
   className,
   children,
   showCloseButton = true,
-  onPointerDownOutside,
-  onFocusOutside,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+}: React.ComponentProps<typeof DialogPrimitive.Popup> & {
   showCloseButton?: boolean;
 }) {
   const { isEntered, isClosing } = React.useContext(DialogMotionContext);
 
-  const handlePointerDownOutside: React.ComponentProps<
-    typeof DialogPrimitive.Content
-  >["onPointerDownOutside"] = (event) => {
-    if (isInsideSelect(event.target)) {
-      event.preventDefault();
-    }
-    onPointerDownOutside?.(event);
-  };
-
-  const handleFocusOutside: React.ComponentProps<
-    typeof DialogPrimitive.Content
-  >["onFocusOutside"] = (event) => {
-    if (isInsideSelect(event.target)) {
-      event.preventDefault();
-    }
-    onFocusOutside?.(event);
-  };
-
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
-      <DialogPrimitive.Content
-        data-slot="dialog-content"
-        className="fixed top-[50%] left-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] outline-none sm:max-w-lg"
-        {...props}
-        onPointerDownOutside={handlePointerDownOutside}
-        onFocusOutside={handleFocusOutside}
-      >
-        <div
-          className={cn(
-            "t-modal relative grid w-full gap-4 rounded-lg border bg-background p-6 shadow-lg",
-            isEntered && "is-open",
-            isClosing && "is-closing",
-            className,
-          )}
+      <DialogPrimitive.Viewport className="fixed inset-0 z-50 flex items-center justify-center">
+        <DialogPrimitive.Popup
+          data-slot="dialog-content"
+          className="w-full max-w-[calc(100%-2rem)] outline-none sm:max-w-xl"
+          {...props}
         >
-          {children}
-          {showCloseButton ? (
-            <DialogPrimitive.Close
-              data-slot="dialog-close"
-              className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-            >
-              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={1.5} />
-              <span className="sr-only">Close</span>
-            </DialogPrimitive.Close>
-          ) : null}
-        </div>
-      </DialogPrimitive.Content>
+          <div
+            className={cn(
+              "t-modal relative grid w-full gap-4 rounded-lg border bg-background p-6 shadow-lg",
+              isEntered && "is-open",
+              isClosing && "is-closing",
+              className,
+            )}
+          >
+            {children}
+            {showCloseButton ? (
+              <DialogPrimitive.Close
+                data-slot="dialog-close"
+                className="absolute top-4 right-4 rounded-none opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={1.5} />
+                <span className="sr-only">Close</span>
+              </DialogPrimitive.Close>
+            ) : null}
+          </div>
+        </DialogPrimitive.Popup>
+      </DialogPrimitive.Viewport>
     </DialogPortal>
   );
 }
@@ -242,9 +231,9 @@ function DialogFooter({
     >
       {children}
       {showCloseButton ? (
-        <DialogPrimitive.Close asChild>
+        <DialogClose asChild>
           <Button variant="outline">Close</Button>
-        </DialogPrimitive.Close>
+        </DialogClose>
       ) : null}
     </div>
   );

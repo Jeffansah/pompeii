@@ -1,0 +1,38 @@
+---
+description: Product forms use react-hook-form, Zod, and the shared Form primitives.
+alwaysApply: true
+---
+
+# Forms
+
+Use `useForm` with `zodResolver`, a Zod schema, and `Form` from `@/components/ui/form`. Do not drive form fields with `useState`. Put schemas under `src/schemas/`. Field error copy comes from `getErrorMessage(AppErrorCode...)`, not inline strings.
+
+```tsx
+// BAD
+const [title, setTitle] = useState("");
+<form onSubmit={save}>
+  <Input value={title} onChange={(event) => setTitle(event.target.value)} />
+</form>
+
+// GOOD
+const form = useForm<TaskCreateSchema>({
+  resolver: zodResolver(taskCreateSchema),
+  defaultValues: { title: "" },
+});
+
+<Form {...form} onSubmit={form.handleSubmit(onSubmit)}>
+  <FormField
+    control={form.control}
+    name="title"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Task title</FormLabel>
+        <FormControl>
+          <Input {...field} />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</Form>
+```

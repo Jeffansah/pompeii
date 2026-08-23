@@ -43,13 +43,196 @@ export default defineSchema({
   weddingMembers: defineTable({
     userId: v.id("users"),
     weddingId: v.id("weddings"),
-    role: v.literal("couple"),
+    // Denormalized for search. When a person's canonical name changes, patch
+    // this field on every weddingMembers row for that user. Prefer a database
+    // trigger later so this cannot be forgotten.
+    displayName: v.optional(v.string()),
+    role: v.union(
+      v.literal("couple"),
+      v.literal("planner"),
+      v.literal("groomsman"),
+      v.literal("bridesmaid"),
+    ),
   })
     .index("by_userId", ["userId"])
     .index("by_weddingId", ["weddingId"])
-    .index("by_userId_and_weddingId", ["userId", "weddingId"]),
+    .index("by_userId_and_weddingId", ["userId", "weddingId"])
+    .searchIndex("search_displayName", {
+      searchField: "displayName",
+      filterFields: ["weddingId"],
+    }),
   workspaceSessions: defineTable({
     sessionId: v.string(),
     weddingId: v.union(v.id("weddings"), v.null()),
   }).index("by_sessionId", ["sessionId"]),
+  overviewPosterCards: defineTable({
+    stableKey: v.string(),
+    active: v.boolean(),
+    sortOrder: v.number(),
+    imageKey: v.optional(v.string()),
+    imageSourceUrl: v.string(),
+    imageAlt: v.string(),
+    imageCreator: v.string(),
+    imageLicense: v.string(),
+    caption: v.string(),
+    locationCity: v.optional(v.string()),
+    locationCountry: v.optional(v.string()),
+    quote: v.string(),
+    author: v.string(),
+    sourceTitle: v.string(),
+    sourceUrl: v.string(),
+  })
+    .index("by_stableKey", ["stableKey"])
+    .index("by_active_and_sortOrder", ["active", "sortOrder"]),
+  tasks: defineTable({
+    weddingId: v.id("weddings"),
+    title: v.string(),
+    notes: v.optional(v.string()),
+    dueDate: v.optional(v.string()),
+    priority: v.union(
+      v.literal("low"),
+      v.literal("normal"),
+      v.literal("high"),
+      v.literal("urgent"),
+    ),
+    // Stored as strings for now. Categories will become enums later, and
+    // each subcategory will map to one of those categories.
+    category: v.optional(v.string()),
+    subcategory: v.optional(v.string()),
+    createdBy: v.id("users"),
+    assignedTo: v.union(v.id("users"), v.null()),
+    status: v.union(
+      v.literal("todo"),
+      v.literal("in_progress"),
+      v.literal("completed"),
+    ),
+    completionSource: v.union(v.literal("manual"), v.literal("system")),
+    completedAt: v.union(v.number(), v.null()),
+    completedBy: v.union(v.id("users"), v.null()),
+    deletedAt: v.union(v.number(), v.null()),
+    sortAt: v.number(),
+    createdAt: v.optional(v.number()),
+    priorityRank: v.optional(v.number()),
+    dueSortAsc: v.optional(v.number()),
+    dueSortDesc: v.optional(v.number()),
+  })
+    .index("by_weddingId_and_status_and_deletedAt_and_sortAt", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "sortAt",
+    ])
+    .index("by_wedding_status_deletedAt_dueAsc", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "dueSortAsc",
+    ])
+    .index("by_wedding_status_deletedAt", ["weddingId", "status", "deletedAt"])
+    .index("by_wedding_status_deleted_due_priority", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "dueDate",
+      "priorityRank",
+      "dueSortAsc",
+    ])
+    .index("by_wedding_status_deleted_due_created", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "dueDate",
+      "createdAt",
+    ])
+    .index("by_wedding_status_deletedAt_dueDesc", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "dueSortDesc",
+    ])
+    .index("by_wedding_status_deletedAt_priority", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "priorityRank",
+      "dueSortAsc",
+    ])
+    .index("by_wedding_status_deletedAt_created", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "createdAt",
+    ])
+    .index("by_weddingId_and_status_and_deletedAt_and_dueDate", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "dueDate",
+    ])
+    .index("by_weddingId_status_deletedAt_dueDate_sortAt", [
+      "weddingId",
+      "status",
+      "deletedAt",
+      "dueDate",
+      "sortAt",
+    ])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: [
+        "weddingId",
+        "status",
+        "priority",
+        "category",
+        "assignedTo",
+      ],
+    })
+    .index("by_weddingId_and_deletedAt_and_completedAt_and_sortAt", [
+      "weddingId",
+      "deletedAt",
+      "completedAt",
+      "sortAt",
+    ])
+    .index("by_wedding_deleted_completed_dueAsc", [
+      "weddingId",
+      "deletedAt",
+      "completedAt",
+      "dueSortAsc",
+    ])
+    .index("by_weddingId_and_deletedAt_and_sortAt", [
+      "weddingId",
+      "deletedAt",
+      "sortAt",
+    ])
+    .index("by_createdBy", ["createdBy"])
+    .index("by_assignedTo", ["assignedTo"]),
+  taskActivity: defineTable({
+    weddingId: v.id("weddings"),
+    taskId: v.id("tasks"),
+    actorId: v.id("users"),
+    kind: v.union(
+      v.literal("created"),
+      v.literal("updated"),
+      v.literal("assigned"),
+      v.literal("status_changed"),
+      v.literal("completed"),
+      v.literal("deleted"),
+    ),
+    field: v.optional(v.string()),
+    previousValue: v.optional(v.string()),
+    nextValue: v.optional(v.string()),
+  })
+    .index("by_taskId", ["taskId"])
+    .index("by_weddingId", ["weddingId"]),
+  taskReminders: defineTable({
+    weddingId: v.id("weddings"),
+    taskId: v.id("tasks"),
+    enabled: v.boolean(),
+    remindAt: v.number(),
+    channels: v.array(v.union(v.literal("in_app"), v.literal("email"))),
+    scheduledJobId: v.optional(v.string()),
+    lastTriggeredAt: v.union(v.number(), v.null()),
+    deletedAt: v.union(v.number(), v.null()),
+  })
+    .index("by_taskId", ["taskId"])
+    .index("by_remindAt_and_enabled", ["remindAt", "enabled"]),
 });

@@ -1,0 +1,45 @@
+---
+description: Extract distinct UI into named components. Compose parents from children.
+alwaysApply: true
+---
+
+# Composable UI
+
+Prefer small named components over packing several pieces into one parent. If a block has its own job (search, add, header chrome), give it a file and a name. Parents compose. They do not own the internals of their children.
+
+```tsx
+// BAD
+export function WorkspaceShell() {
+  return (
+    <header>
+      <input placeholder="Search workspace" />
+      <button>Quick add</button>
+      <UserAvatar />
+    </header>
+  );
+}
+
+// GOOD
+export function WorkspaceHeader() {
+  return (
+    <header>
+      <SearchWorkspace />
+      <QuickAdd />
+      <UserAvatar />
+    </header>
+  );
+}
+```
+
+Do this even when the child is still a stub. We will grow it in place.
+
+## Place files deliberately
+
+Before creating or moving a file, decide which product area owns it. Keep
+workspace-wide layout primitives in `components/layout`, and place
+feature-specific components under their domain, such as
+`components/wedding/overview`. Keep a component, its focused tests, and closely
+related subcomponents together.
+
+When a component's responsibility changes, revisit its location. Do not leave
+feature code in a generic folder just because it started there.

@@ -1,6 +1,10 @@
-import type { GenericDatabaseReader, GenericDatabaseWriter } from "convex/server";
+import type {
+  GenericDatabaseReader,
+  GenericDatabaseWriter,
+} from "convex/server";
 
 import type { DataModel, Doc, Id } from "../../_generated/dataModel";
+import type { MemberRole } from "./roles";
 
 export async function memberFor(
   ctx: { db: GenericDatabaseReader<DataModel> },
@@ -15,18 +19,47 @@ export async function memberFor(
     .unique();
 }
 
+export async function addMember(
+  ctx: { db: GenericDatabaseWriter<DataModel> },
+  args: {
+    userId: Id<"users">;
+    weddingId: Id<"weddings">;
+    displayName: string;
+    role: MemberRole;
+  },
+) {
+  const existing = await memberFor(ctx, args.userId, args.weddingId);
+  if (existing !== null) {
+    if (
+      existing.displayName !== args.displayName ||
+      existing.role !== args.role
+    ) {
+      await ctx.db.patch(existing._id, {
+        displayName: args.displayName,
+        role: args.role,
+      });
+    }
+    return existing._id;
+  }
+
+  return await ctx.db.insert("weddingMembers", {
+    userId: args.userId,
+    weddingId: args.weddingId,
+    displayName: args.displayName,
+    role: args.role,
+  });
+}
+
 export async function addCoupleMember(
   ctx: { db: GenericDatabaseWriter<DataModel> },
   userId: Id<"users">,
   weddingId: Id<"weddings">,
+  displayName: string,
 ) {
-  const existing = await memberFor(ctx, userId, weddingId);
-  if (existing !== null) {
-    return;
-  }
-  await ctx.db.insert("weddingMembers", {
+  await addMember(ctx, {
     userId,
     weddingId,
+    displayName,
     role: "couple",
   });
 }
@@ -40,13 +73,15 @@ export async function weddingsForUser(
     .withIndex("by_userId", (q) => q.eq("userId", userId))
     .collect();
 
-  const weddings: Array<{ name: string; slug: string }> = [];
-  for (const row of rows) {
-    const wedding: Doc<"weddings"> | null = await ctx.db.get(row.weddingId);
-    if (wedding === null) {
-      continue;
-    }
-    weddings.push({ name: wedding.name, slug: wedding.slug });
-  }
-  return weddings;
+  const weddings = await Promise.all(
+    rows.map(async (row) => {
+      const wedding: Doc<"weddings"> | null = await ctx.db.get(row.weddingId);
+      return wedding === null
+        ? null
+        : { name: wedding.name, slug: wedding.slug };
+    }),
+  );
+  return weddings.filter(
+    (wedding): wedding is { name: string; slug: string } => wedding !== null,
+  );
 }

@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { ConvexQueryClient } from "@convex-dev/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConvexReactClient } from "convex/react";
 import {
@@ -12,17 +13,30 @@ import { OttBootstrap } from "@/components/auth/ott-bootstrap";
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
 const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
 
-function QueryProvider({ children }: { children: ReactNode }) {
+function QueryProvider({
+  children,
+  convex,
+}: {
+  children: ReactNode;
+  convex: ConvexReactClient;
+}) {
   const [queryClient] = useState(
-    () =>
-      new QueryClient({
+    () => {
+      const convexQueryClient = new ConvexQueryClient(convex);
+      const client = new QueryClient({
         defaultOptions: {
           queries: {
+            queryKeyHashFn: convexQueryClient.hashFn(),
+            queryFn: convexQueryClient.queryFn(),
+            gcTime: 5 * 60 * 1000,
             retry: 1,
             refetchOnWindowFocus: false,
           },
         },
-      }),
+      });
+      convexQueryClient.connect(client);
+      return client;
+    },
   );
 
   return (
@@ -41,7 +55,7 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
         client={convex}
         authClient={authClient as unknown as AuthClient}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider convex={convex}>{children}</QueryProvider>
       </ConvexBetterAuthProvider>
     </OttBootstrap>
   );

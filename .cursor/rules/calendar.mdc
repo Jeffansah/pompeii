@@ -1,0 +1,21 @@
+---
+description: Calendars disable past dates unless past dates are explicitly allowed.
+alwaysApply: true
+---
+
+# Calendar dates
+
+Do not let people pick a date before today unless the product needs it. `Calendar` and `DatePicker` already disable past days by default. Keep that default. Pass `allowPast` only when a past date is a real requirement.
+
+```tsx
+// BAD
+<Calendar mode="single" allowPast />
+<DatePicker allowPast value={dueDate} onChange={setDueDate} />
+
+// GOOD
+<Calendar mode="single" />
+<DatePicker value={dueDate} onChange={setDueDate} />
+
+// GOOD, past dates are required
+<Calendar mode="single" allowPast />
+```
